@@ -5,6 +5,7 @@ import Header   from "./inc/Header";
 
 import Dashboard    from "./Dashboard";
 import Profile      from "./profile/Profile";
+import Company       from "./Maintenance/Company/CompanyContent";
 import Center       from "./Maintenance/Center/CenterContent";
 import Department   from "./Maintenance/Department/DepartmentContent";
 import Position     from "./Maintenance/Position/PositionContent";
@@ -62,6 +63,14 @@ export const TAB_CONFIG = {
   // ========================================================
   // MAINTENANCE
   // ========================================================
+
+  company: {
+    title: "Company Management",
+    component: <Company />,
+    label: "Company",
+    section: "maintenance",
+    icon: <i className="bi bi-buildings text-xl" />,
+  },
 
   center: {
     title: "Center Management",

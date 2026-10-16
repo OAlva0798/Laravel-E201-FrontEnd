@@ -17,7 +17,7 @@ const formFields = [
     type: "input",
     inputType: "text",
     placeholder: "e.g. 101",
-    required: true,
+    required: false,
     className: "col-span-12",
   },
   {
@@ -26,7 +26,7 @@ const formFields = [
     type: "input",
     inputType: "text",
     placeholder: "e.g. Supervisor",
-    required: true,
+    required: false,
     className: "col-span-12",
   },
 ];
