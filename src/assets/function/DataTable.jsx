@@ -7,32 +7,22 @@ import LoadingState from "./LoadingState";
 
 /**
  * Retrieve a value using a string accessor or a function.
- *
  * Supports nested properties, such as "user.name".
  */
 const getValue = (row, accessor) => {
-  if (!accessor) {
-    return undefined;
-  }
+  if (!accessor) return undefined;
+  if (typeof accessor === "function") return accessor(row);
 
-  if (typeof accessor === "function") {
-    return accessor(row);
-  }
-
-  return accessor.split(".").reduce(
-    (acc, part) => (acc == null ? undefined : acc[part]),
-    row
-  );
+  return accessor
+    .split(".")
+    .reduce((acc, part) => (acc == null ? undefined : acc[part]), row);
 };
 
 /**
  * Determine the unique sorting key for a column.
  */
 const getSortKey = (column) =>
-  column.id ||
-  (typeof column.accessor === "string"
-    ? column.accessor
-    : null);
+  column.id || (typeof column.accessor === "string" ? column.accessor : null);
 
 /* =========================================================
  * Component
@@ -54,9 +44,7 @@ export default function DataTable({
 
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(
-    defaultRowsPerPage
-  );
+  const [rowsPerPage, setRowsPerPage] = useState(defaultRowsPerPage);
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
@@ -70,23 +58,16 @@ export default function DataTable({
   const filteredData = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    if (!query) {
-      return data;
-    }
+    if (!query) return data;
 
     return data.filter((row) =>
       columns.some((column) => {
-        if (!column.accessor) {
-          return false;
-        }
+        if (!column.accessor) return false;
 
         const value = getValue(row, column.accessor);
 
-        return (
-          value != null &&
-          String(value).toLowerCase().includes(query)
-        );
-      })
+        return value != null && String(value).toLowerCase().includes(query);
+      }),
     );
   }, [data, columns, searchQuery]);
 
@@ -95,56 +76,33 @@ export default function DataTable({
    * ===================================================== */
 
   const sortedData = useMemo(() => {
-    if (!sortConfig.key) {
-      return filteredData;
-    }
+    if (!sortConfig.key) return filteredData;
 
-    const column = columns.find(
-      (item) => getSortKey(item) === sortConfig.key
-    );
+    const column = columns.find((item) => getSortKey(item) === sortConfig.key);
 
-    if (!column) {
-      return filteredData;
-    }
+    if (!column) return filteredData;
 
     return [...filteredData].sort((a, b) => {
       const aValue = getValue(a, column.accessor);
       const bValue = getValue(b, column.accessor);
 
       // Keep empty values at the bottom in both directions.
-      if (aValue == null && bValue == null) {
-        return 0;
-      }
-
-      if (aValue == null) {
-        return 1;
-      }
-
-      if (bValue == null) {
-        return -1;
-      }
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
 
       let comparison = 0;
 
-      if (
-        typeof aValue === "number" &&
-        typeof bValue === "number"
-      ) {
+      if (typeof aValue === "number" && typeof bValue === "number") {
         comparison = aValue - bValue;
       } else {
-        comparison = String(aValue).localeCompare(
-          String(bValue),
-          undefined,
-          {
-            numeric: true,
-            sensitivity: "base",
-          }
-        );
+        comparison = String(aValue).localeCompare(String(bValue), undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
       }
 
-      return sortConfig.direction === "asc"
-        ? comparison
-        : -comparison;
+      return sortConfig.direction === "asc" ? comparison : -comparison;
     });
   }, [filteredData, columns, sortConfig]);
 
@@ -153,32 +111,14 @@ export default function DataTable({
    * ===================================================== */
 
   const totalResults = sortedData.length;
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(totalResults / rowsPerPage)
-  );
-
-  const safeCurrentPage = Math.min(
-    currentPage,
-    totalPages
-  );
-
-  const startIndex =
-    (safeCurrentPage - 1) * rowsPerPage;
-
-  const endIndex = Math.min(
-    startIndex + rowsPerPage,
-    totalResults
-  );
+  const totalPages = Math.max(1, Math.ceil(totalResults / rowsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * rowsPerPage;
+  const endIndex = Math.min(startIndex + rowsPerPage, totalResults);
 
   const paginatedData = useMemo(
-    () =>
-      sortedData.slice(
-        startIndex,
-        startIndex + rowsPerPage
-      ),
-    [sortedData, startIndex, rowsPerPage]
+    () => sortedData.slice(startIndex, startIndex + rowsPerPage),
+    [sortedData, startIndex, rowsPerPage],
   );
 
   /* =======================================================
@@ -196,92 +136,56 @@ export default function DataTable({
   }, [currentPage, totalPages]);
 
   /* =======================================================
-   * Sort Handler
+   * Handlers
    * ===================================================== */
 
   const handleSort = (column) => {
-    if (column.sortable === false) {
-      return;
-    }
+    if (column.sortable === false) return;
 
     const sortKey = getSortKey(column);
-
-    if (!sortKey) {
-      return;
-    }
+    if (!sortKey) return;
 
     const direction =
-      sortConfig.key === sortKey &&
-      sortConfig.direction === "asc"
+      sortConfig.key === sortKey && sortConfig.direction === "asc"
         ? "desc"
         : "asc";
 
-    setSortConfig({
-      key: sortKey,
-      direction,
-    });
-
+    setSortConfig({ key: sortKey, direction });
     setCurrentPage(1);
   };
 
-  /* =======================================================
-   * Page Handler
-   * ===================================================== */
-
   const goToPage = (page) => {
-    setCurrentPage(
-      Math.min(Math.max(page, 1), totalPages)
-    );
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
   };
 
-  /* =======================================================
-   * Render Cell
-   * ===================================================== */
-
   const renderCell = (column, row) => {
-    if (column.render) {
-      return column.render(row);
-    }
-
+    if (column.render) return column.render(row);
     const value = getValue(row, column.accessor);
-
     return value ?? "—";
   };
 
   /* =======================================================
-   * Page Numbers
+   * Page Numbers Generator
    * ===================================================== */
 
   const pageNumbers = useMemo(() => {
     const pages = [];
 
     if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
       return pages;
     }
 
     pages.push(1);
 
-    if (safeCurrentPage > 3) {
-      pages.push("...");
-    }
+    if (safeCurrentPage > 3) pages.push("...");
 
     const start = Math.max(2, safeCurrentPage - 1);
-    const end = Math.min(
-      totalPages - 1,
-      safeCurrentPage + 1
-    );
+    const end = Math.min(totalPages - 1, safeCurrentPage + 1);
 
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
+    for (let i = start; i <= end; i++) pages.push(i);
 
-    if (safeCurrentPage < totalPages - 2) {
-      pages.push("...");
-    }
+    if (safeCurrentPage < totalPages - 2) pages.push("...");
 
     pages.push(totalPages);
 
@@ -289,44 +193,36 @@ export default function DataTable({
   }, [safeCurrentPage, totalPages]);
 
   /* =======================================================
-   * Empty State
+   * Empty State View
    * ===================================================== */
 
   const EmptyState = () => {
     const hasSearch = searchQuery.trim().length > 0;
 
     return (
-      <div className="flex min-h-48 flex-col items-center justify-center px-4 text-center">
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-          <i
-            className="bi bi-inbox text-xl text-slate-400"
-            aria-hidden="true"
-          />
+      <div className="flex min-h-[220px] flex-col items-center justify-center p-6 text-center">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+          <i className="bi bi-inbox text-2xl" aria-hidden="true" />
         </div>
 
-        <p className="font-bold text-slate-800">
-          {hasSearch
-            ? "No matching records"
-            : emptyMessage}
+        <p className="text-sm font-bold text-slate-800">
+          {hasSearch ? "No matching records" : emptyMessage}
         </p>
 
-        <p className="mt-1 max-w-sm text-xs text-slate-500">
+        <p className="mt-1 max-w-xs text-xs text-slate-500">
           {hasSearch
-            ? `No records matched "${searchQuery}".`
-            : "There are currently no records to display."}
+            ? `No results matched "${searchQuery}". Try broadening your search.`
+            : "There are currently no records available to display."}
         </p>
 
         {hasSearch && (
           <button
             type="button"
             onClick={() => setSearchQuery("")}
-            className="mt-3 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 active:scale-95"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3.5 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 active:scale-95"
           >
-            <i
-              className="bi bi-x-circle mr-1.5"
-              aria-hidden="true"
-            />
-            Clear search
+            <i className="bi bi-x-circle text-sm" aria-hidden="true" />
+            Clear search filter
           </button>
         )}
       </div>
@@ -338,24 +234,20 @@ export default function DataTable({
    * ===================================================== */
 
   return (
-    <div className="w-full overflow-hidden text-xs">
+    <div className="">
       {/* ===================================================
           TOOLBAR
       ================================================== */}
-
-      <div className="flex flex-col gap-3 border-b border-slate-100 bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* Rows per page and result count */}
-        <div className="flex items-center justify-between gap-2 sm:justify-start">
-          <label className="flex items-center gap-1.5 text-sm text-slate-600">
+      <div className="flex flex-col gap-3 border-b border-slate-200 p-1 sm:flex-row sm:items-center sm:justify-between sm:p-2">
+        {/* Rows per page selector */}
+        <div className="flex items-center justify-between sm:justify-start">
+          <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
             <span>Show</span>
-
             <select
               value={rowsPerPage}
-              onChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
-              }}
+              onChange={(e) => setRowsPerPage(Number(e.target.value))}
               aria-label="Rows per page"
-              className="cursor-pointer rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10"
+              className="cursor-pointer rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10"
             >
               {rowsPerPageOptions.map((option) => (
                 <option key={option} value={option}>
@@ -363,17 +255,16 @@ export default function DataTable({
                 </option>
               ))}
             </select>
-
             <span>entries</span>
           </label>
 
-          <span className="hidden rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-500 sm:inline-flex">
-            {totalResults}{" "}
-            {totalResults === 1 ? "result" : "results"}
+          {/* Quick result badge for mobile header */}
+          <span className="text-[11px] font-semibold text-slate-500 sm:hidden">
+            {totalResults} {totalResults === 1 ? "result" : "results"}
           </span>
         </div>
 
-        {/* Search */}
+        {/* Search Input */}
         <div className="relative w-full sm:w-72 md:w-80">
           <i
             className="bi bi-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -386,7 +277,7 @@ export default function DataTable({
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={searchPlaceholder}
             aria-label="Search records"
-            className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-9 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10"
+            className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-8 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10"
           />
 
           {searchQuery && (
@@ -394,62 +285,32 @@ export default function DataTable({
               type="button"
               onClick={() => setSearchQuery("")}
               aria-label="Clear search"
-              className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 active:scale-95"
+              className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 active:scale-95"
             >
-              <i
-                className="bi bi-x-lg text-xs"
-                aria-hidden="true"
-              />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile result count */}
-      <div className="px-3 pb-2 pt-2 sm:hidden">
-        <div className="flex items-center justify-between text-[11px] text-slate-500">
-          <span>
-            {totalResults}{" "}
-            {totalResults === 1 ? "result" : "results"}
-          </span>
-
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="font-semibold text-blue-600"
-            >
-              Clear search
+              <i className="bi bi-x-lg text-[10px]" aria-hidden="true" />
             </button>
           )}
         </div>
       </div>
 
       {/* ===================================================
-          DESKTOP TABLE
+          TABLE (DESKTOP & TABLET: sm+)
       ================================================== */}
-
       <div className="hidden overflow-x-auto sm:block">
-        <table className="w-full border-collapse text-left">
-          <thead className="sticky top-0 z-10">
-            <tr className="border-b border-slate-300 bg-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-700">
+        <table className="w-full border-collapse text-left text-xs">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-600">
               {columns.map((column, index) => {
                 const sortKey = getSortKey(column);
-
-                const sortable =
-                  column.sortable !== false &&
-                  !!sortKey;
-
-                const sorted = sortConfig.key === sortKey;
+                const sortable = column.sortable !== false && !!sortKey;
+                const isSorted = sortConfig.key === sortKey;
 
                 return (
                   <th
                     key={column.id || index}
-                    onClick={() =>
-                      sortable && handleSort(column)
-                    }
+                    onClick={() => sortable && handleSort(column)}
                     aria-sort={
-                      sorted
+                      isSorted
                         ? sortConfig.direction === "asc"
                           ? "ascending"
                           : "descending"
@@ -458,44 +319,38 @@ export default function DataTable({
                           : undefined
                     }
                     className={[
-                      "whitespace-nowrap px-3 py-2.5",
+                      "whitespace-nowrap px-2 py-3 font-semibold",
                       sortable
-                        ? "cursor-pointer select-none hover:bg-slate-200"
+                        ? "cursor-pointer select-none transition hover:bg-slate-100"
                         : "",
                       column.className || "",
                     ].join(" ")}
                   >
                     <div className="flex items-center gap-1.5">
+                      <span>{column.header}</span>
                       {sortable && (
                         <span
-                          className={`flex flex-col text-[7px] leading-[7px] ${
-                            sorted
-                              ? "text-blue-600"
-                              : "text-slate-400"
+                          className={`inline-flex flex-col text-[8px] leading-[8px] ${
+                            isSorted ? "text-blue-600" : "text-slate-400"
                           }`}
                           aria-hidden="true"
                         >
                           <i
                             className={`bi bi-caret-up-fill ${
-                              sorted &&
-                              sortConfig.direction === "asc"
+                              isSorted && sortConfig.direction === "asc"
                                 ? "opacity-100"
                                 : "opacity-30"
                             }`}
                           />
-
                           <i
                             className={`bi bi-caret-down-fill ${
-                              sorted &&
-                              sortConfig.direction === "desc"
+                              isSorted && sortConfig.direction === "desc"
                                 ? "opacity-100"
                                 : "opacity-30"
                             }`}
                           />
                         </span>
                       )}
-
-                      <span>{column.header}</span>
                     </div>
                   </th>
                 );
@@ -503,7 +358,7 @@ export default function DataTable({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100 bg-white text-slate-800">
+          <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
             {isLoading ? (
               <tr>
                 <td colSpan={Math.max(columns.length, 1)}>
@@ -514,12 +369,12 @@ export default function DataTable({
               paginatedData.map((row, rowIndex) => (
                 <tr
                   key={getRowKey(row, startIndex + rowIndex)}
-                  className="group transition-colors hover:bg-blue-50/50"
+                  className="transition-colors hover:bg-slate-50/80"
                 >
                   {columns.map((column, columnIndex) => (
                     <td
                       key={column.id || columnIndex}
-                      className={`px-3 py-2.5 ${
+                      className={`whitespace-nowrap px-2 py-1.5 ${
                         column.cellClassName || ""
                       }`}
                     >
@@ -540,50 +395,45 @@ export default function DataTable({
       </div>
 
       {/* ===================================================
-          MOBILE CARDS
+          CARD VIEW (MOBILE: < sm)
       ================================================== */}
-
-      <div className="px-2 pb-2 sm:hidden">
+      <div className="p-3 sm:hidden">
         {isLoading ? (
           <LoadingState />
         ) : paginatedData.length > 0 ? (
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {paginatedData.map((row, rowIndex) => {
               const firstColumn = columns[0];
 
               return (
                 <article
                   key={getRowKey(row, startIndex + rowIndex)}
-                  className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow active:shadow"
+                  className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs transition active:border-slate-300"
                 >
-                  {/* Primary field */}
+                  {/* Primary / Header Field */}
                   {firstColumn && (
-                    <div className="border-b border-slate-100 bg-slate-50 px-3 py-3">
-                      <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <div className="border-b border-slate-100 bg-slate-50/60 px-3.5 py-2.5">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
                         {firstColumn.header}
-                      </div>
-
-                      <div className="break-words text-sm font-bold text-slate-900">
+                      </span>
+                      <div className="mt-0.5 break-words text-xs font-bold text-slate-900">
                         {renderCell(firstColumn, row)}
                       </div>
                     </div>
                   )}
 
-                  {/* Remaining fields */}
+                  {/* Secondary Fields */}
                   <div className="divide-y divide-slate-100">
                     {columns.slice(1).map((column, columnIndex) => (
                       <div
                         key={column.id || columnIndex}
-                        className="flex min-w-0 items-start gap-3 px-3 py-2.5"
+                        className="flex items-start justify-between gap-3 px-3.5 py-2.5"
                       >
-                        <div className="w-[36%] shrink-0">
-                          <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                            {column.header}
-                          </span>
-                        </div>
-
+                        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          {column.header}
+                        </span>
                         <div
-                          className={`min-w-0 flex-1 break-words text-right text-xs font-medium text-slate-700 ${
+                          className={`break-words text-right text-xs font-medium text-slate-700 ${
                             column.cellClassName || ""
                           }`}
                         >
@@ -602,55 +452,49 @@ export default function DataTable({
       </div>
 
       {/* ===================================================
-          PAGINATION
+          PAGINATION CONTROLS
       ================================================== */}
-
       {totalResults > 0 && (
-        <div className="flex flex-col gap-3 border-t border-slate-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-          {/* Result range */}
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 p-3 sm:flex-row sm:px-4 sm:py-3">
+          {/* Result summary */}
           <div className="text-center text-xs text-slate-500 sm:text-left">
             Showing{" "}
-            <strong className="text-slate-800">
+            <strong className="font-semibold text-slate-800">
               {startIndex + 1}
             </strong>{" "}
-            –{" "}
-            <strong className="text-slate-800">
-              {endIndex}
-            </strong>{" "}
+            to{" "}
+            <strong className="font-semibold text-slate-800">{endIndex}</strong>{" "}
             of{" "}
-            <strong className="text-slate-800">
+            <strong className="font-semibold text-slate-800">
               {totalResults}
-            </strong>
+            </strong>{" "}
+            entries
           </div>
 
-          {/* Pagination controls */}
-          <div className="flex items-center justify-center gap-1.5">
-            {/* Previous */}
+          {/* Pagination buttons */}
+          <div className="flex items-center gap-1">
+            {/* Previous button */}
             <button
               type="button"
               onClick={() => goToPage(safeCurrentPage - 1)}
               disabled={safeCurrentPage === 1}
               aria-label="Previous page"
-              className="flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-2 text-slate-600 transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <i
-                className="bi bi-chevron-left"
+                className="bi bi-chevron-left text-xs sm:mr-1"
                 aria-hidden="true"
               />
-
-              <span className="ml-1 hidden md:inline">
-                Previous
-              </span>
+              <span className="hidden sm:inline">Previous</span>
             </button>
 
-            {/* Page numbers */}
+            {/* Desktop Numeric Pagination */}
             <div className="hidden items-center gap-1 sm:flex">
               {pageNumbers.map((page, index) =>
                 page === "..." ? (
                   <span
                     key={`ellipsis-${index}`}
-                    className="flex h-8 w-7 items-center justify-center text-slate-400"
-                    aria-hidden="true"
+                    className="flex h-8 w-7 items-center justify-center text-xs text-slate-400"
                   >
                     …
                   </span>
@@ -659,43 +503,36 @@ export default function DataTable({
                     key={page}
                     type="button"
                     onClick={() => goToPage(page)}
-                    aria-current={
+                    aria-current={safeCurrentPage === page ? "page" : undefined}
+                    aria-label={`Page ${page}`}
+                    className={`flex h-8 min-w-[32px] items-center justify-center rounded-lg px-2 text-xs font-semibold transition active:scale-95 ${
                       safeCurrentPage === page
-                        ? "page"
-                        : undefined
-                    }
-                    aria-label={`Go to page ${page}`}
-                    className={`flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg px-2 text-xs font-semibold transition active:scale-95 ${
-                      safeCurrentPage === page
-                        ? "bg-blue-600 text-white shadow-sm"
+                        ? "bg-blue-600 text-white shadow-xs"
                         : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     {page}
                   </button>
-                )
+                ),
               )}
             </div>
 
-            {/* Mobile page indicator */}
-            <span className="whitespace-nowrap rounded-lg bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-600 sm:hidden">
+            {/* Mobile Compact Page Counter */}
+            <span className="px-2 text-xs font-semibold text-slate-600 sm:hidden">
               {safeCurrentPage} / {totalPages}
             </span>
 
-            {/* Next */}
+            {/* Next button */}
             <button
               type="button"
               onClick={() => goToPage(safeCurrentPage + 1)}
               disabled={safeCurrentPage === totalPages}
               aria-label="Next page"
-              className="flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-2 text-slate-600 transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <span className="mr-1 hidden md:inline">
-                Next
-              </span>
-
+              <span className="hidden sm:inline">Next</span>
               <i
-                className="bi bi-chevron-right"
+                className="bi bi-chevron-right text-xs sm:ml-1"
                 aria-hidden="true"
               />
             </button>

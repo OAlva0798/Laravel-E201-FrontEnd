@@ -7,8 +7,9 @@ import Dashboard    from "./Dashboard";
 import Profile      from "./profile/Profile";
 import Company       from "./Maintenance/Company/CompanyContent";
 import Center       from "./Maintenance/Center/CenterContent";
+import DepartmentPosition       from "./Maintenance/Department_Position/DepartmentPositionContent";
 import Department   from "./Maintenance/Department/DepartmentContent";
-import Position     from "./Maintenance/Position/PositionContent";
+import PositionLevel     from "./Maintenance/PositionLevel/PositionLevelContent";
 import UserDetails  from "./Maintenance/UserDetails/UserDetailsContent";
 
 import SettingsContent  from "./settings/SettingsContent";
@@ -80,18 +81,26 @@ export const TAB_CONFIG = {
     icon: <i className="bi bi-building text-xl" />,
   },
 
-  department: {
-    title: "Department Management",
-    component: <Department />,
-    label: "Departments",
+  department_position: {
+    title: "Department / Position Management",
+    component: <DepartmentPosition />,
+    label: "Department / Positions",
     section: "maintenance",
     icon: <i className="bi bi-diagram-3 text-lg" />,
   },
 
-  position: {
+  // department: {
+  //   title: "Department Management",
+  //   component: <Department />,
+  //   label: "Departments",
+  //   section: "maintenance",
+  //   icon: <i className="bi bi-diagram-3 text-lg" />,
+  // },
+
+  positionLevel: {
     title: "Position Management",
-    component: <Position />,
-    label: "Positions",
+    component: <PositionLevel />,
+    label: "Positions Level",
     section: "maintenance",
     icon: <i className="bi bi-person-badge text-lg" />,
   },

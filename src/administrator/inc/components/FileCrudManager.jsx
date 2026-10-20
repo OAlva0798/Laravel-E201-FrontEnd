@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 
 import {
   showLoadingPopup,
@@ -12,49 +11,145 @@ import {
 import DataTable from "../../../assets/function/DataTable";
 import EmailDispatchForm from "../../Maintenance/UserDetails/EmailDispatchForm";
 
-// ==========================================================
-// FILE CRUD MANAGER
-// ==========================================================
+/* =========================================================
+ * FILTER HELPERS
+ * ======================================================= */
+
+const normalizeValue = (value) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase();
+
+const matchesTab = (item, tab, statusKey) => {
+  if (typeof tab.filter === "function") {
+    return Boolean(tab.filter(item));
+  }
+
+  const filterKey = tab.filterKey || statusKey;
+  const actualValue = item?.[filterKey];
+
+  if (Array.isArray(tab.filterValues)) {
+    return tab.filterValues.some(
+      (value) => normalizeValue(actualValue) === normalizeValue(value),
+    );
+  }
+
+  const expectedValue =
+    tab.filterValue !== undefined ? tab.filterValue : tab.value;
+
+  const actual = normalizeValue(actualValue);
+  const expected = normalizeValue(expectedValue);
+
+  switch (tab.match || "equals") {
+    case "contains":
+      return actual.includes(expected);
+
+    case "startsWith":
+      return actual.startsWith(expected);
+
+    case "notEquals":
+      return actual !== expected;
+
+    case "equals":
+    default:
+      return actual === expected;
+  }
+};
+
+/* =========================================================
+ * FILE CRUD MANAGER
+ * ======================================================= */
 
 export default function FileCrudManager({
   apiEndpoint,
   emailDispatchEndpoint,
+
   primaryKey = "id",
   statusKey = "status",
-  title,
+
+  title = "Records",
   emptyForm = {},
   columns = [],
   FormComponent,
+
   items = [],
   loading = false,
   onFetchItems,
-  modalSize,
-}) {
-  // --------------------------------------------------------
-  // State
-  // --------------------------------------------------------
 
-  const [activeTab, setActiveTab] = useState("Active");
+  modalSize,
+
+  // No built-in/default tabs.
+  tabs = [],
+  defaultTab,
+  showTabs = true,
+  showTabCounts = false,
+
+  // Custom header renderer.
+  header = null,
+
+  // Email dispatch visibility.
+  showEmailDispatch = true,
+}) {
+  /* =====================================================
+   * CONFIGURED TABS
+   * =================================================== */
+
+  const configuredTabs = useMemo(
+    () =>
+      (Array.isArray(tabs) ? tabs : []).map((tab) => ({
+        ...tab,
+        label: tab.label ?? String(tab.value ?? ""),
+        value: tab.value ?? tab.label,
+        filterKey: tab.filterKey ?? statusKey,
+      })),
+    [tabs, statusKey],
+  );
+
+  const resolvedDefaultTab = useMemo(() => {
+    const requestedTab = defaultTab;
+
+    if (configuredTabs.some((tab) => tab.value === requestedTab)) {
+      return requestedTab;
+    }
+
+    return configuredTabs[0]?.value ?? null;
+  }, [configuredTabs, defaultTab]);
+
+  const [activeTab, setActiveTab] = useState(resolvedDefaultTab);
+
+  // Keep the selected tab valid when a page's tabs change.
+  useEffect(() => {
+    const exists = configuredTabs.some((tab) => tab.value === activeTab);
+
+    if (!exists) {
+      setActiveTab(resolvedDefaultTab);
+    }
+  }, [configuredTabs, activeTab, resolvedDefaultTab]);
+
+  /* =====================================================
+   * STATE
+   * =================================================== */
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEmailDispatchOpen, setIsEmailDispatchOpen] =
-    useState(false);
+  const [isEmailDispatchOpen, setIsEmailDispatchOpen] = useState(false);
 
   const [currentItem, setCurrentItem] = useState(null);
-  const [formData, setFormData] = useState({ ...emptyForm });
+  const [formData, setFormData] = useState({
+    ...emptyForm,
+  });
 
   const [isSaving, setIsSaving] = useState(false);
 
-  // --------------------------------------------------------
-  // Helpers
-  // --------------------------------------------------------
+  /* =====================================================
+   * AUTHENTICATION
+   * =================================================== */
 
   const getToken = useCallback(
     () =>
       localStorage.getItem("access_token") ||
       sessionStorage.getItem("access_token") ||
       "",
-    []
+    [],
   );
 
   const getHeaders = useCallback(
@@ -63,14 +158,22 @@ export default function FileCrudManager({
 
       return {
         Accept: "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {}),
         ...additionalHeaders,
       };
     },
-    [getToken]
+    [getToken],
   );
 
-  const parseResponse = async (response) => {
+  /* =====================================================
+   * RESPONSE HANDLER
+   * =================================================== */
+
+  const parseResponse = useCallback(async (response) => {
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
@@ -90,285 +193,416 @@ export default function FileCrudManager({
     }
 
     return result;
-  };
+  }, []);
 
-  // --------------------------------------------------------
-  // Open CRUD modal
-  // --------------------------------------------------------
+  /* =====================================================
+   * OPEN CRUD MODAL
+   * =================================================== */
 
-  const handleOpenModal = (item = null) => {
-    setCurrentItem(item);
+  const handleOpenModal = useCallback(
+    (item = null) => {
+      setCurrentItem(item);
 
-    if (item) {
-      setFormData({
-        ...emptyForm,
-        ...item,
-      });
-    } else {
-      setFormData({
-        ...emptyForm,
-        [statusKey]: activeTab,
-      });
-    }
+      if (item) {
+        setFormData({
+          ...emptyForm,
+          ...item,
+        });
+      } else {
+        const selectedTab = configuredTabs.find(
+          (tab) => tab.value === activeTab,
+        );
 
-    setIsModalOpen(true);
-  };
+        const initialStatus =
+          selectedTab?.defaultStatus ??
+          selectedTab?.value ??
+          emptyForm[statusKey] ??
+          "";
 
-  const handleCloseModal = () => {
+        setFormData({
+          ...emptyForm,
+          ...(statusKey
+            ? {
+                [statusKey]: initialStatus,
+              }
+            : {}),
+        });
+      }
+
+      setIsModalOpen(true);
+    },
+    [emptyForm, configuredTabs, activeTab, statusKey],
+  );
+
+  /* =====================================================
+   * CLOSE CRUD MODAL
+   * =================================================== */
+
+  const handleCloseModal = useCallback(() => {
     if (isSaving) return;
 
     setIsModalOpen(false);
     setCurrentItem(null);
     setFormData({ ...emptyForm });
-  };
+  }, [isSaving, emptyForm]);
 
-  // --------------------------------------------------------
-  // Save CRUD record
-  // --------------------------------------------------------
+  /* =====================================================
+   * SAVE RECORD
+   * =================================================== */
 
-  const handleSave = async (formDataOrEvent, customId = null) => {
-    const isMultipart = formDataOrEvent instanceof FormData;
+  const handleSave = useCallback(
+    async (formDataOrEvent, customId = null) => {
+      const isMultipart = formDataOrEvent instanceof FormData;
 
-    if (
-      !isMultipart &&
-      formDataOrEvent &&
-      typeof formDataOrEvent.preventDefault === "function"
-    ) {
-      formDataOrEvent.preventDefault();
-      return;
-    }
+      if (
+        !isMultipart &&
+        formDataOrEvent &&
+        typeof formDataOrEvent.preventDefault === "function"
+      ) {
+        formDataOrEvent.preventDefault();
+        return;
+      }
 
-    try {
-      setIsSaving(true);
+      try {
+        setIsSaving(true);
 
-      showLoadingPopup(
-        currentItem ? "Updating record..." : "Creating new record..."
-      );
+        showLoadingPopup(
+          currentItem ? "Updating record..." : "Creating new record...",
+        );
 
-      const identifier =
-        customId ||
-        (currentItem ? currentItem[primaryKey] : null);
+        const identifier =
+          customId || (currentItem ? currentItem[primaryKey] : null);
 
-      const url = identifier
-        ? `${apiEndpoint}/${identifier}`
-        : apiEndpoint;
+        const url = identifier ? `${apiEndpoint}/${identifier}` : apiEndpoint;
 
-      let options;
+        let options;
 
-      if (isMultipart) {
-        // Laravel multipart PUT workaround.
-        if (currentItem && !formDataOrEvent.has("_method")) {
-          formDataOrEvent.append("_method", "PUT");
+        if (isMultipart) {
+          // Laravel multipart PUT workaround.
+          if (currentItem && !formDataOrEvent.has("_method")) {
+            formDataOrEvent.append("_method", "PUT");
+          }
+
+          options = {
+            method: "POST",
+            headers: getHeaders(),
+            body: formDataOrEvent,
+          };
+        } else {
+          options = {
+            method: currentItem ? "PUT" : "POST",
+            headers: getHeaders({
+              "Content-Type": "application/json",
+            }),
+            body: JSON.stringify(formDataOrEvent),
+          };
         }
 
-        options = {
-          method: "POST",
+        const response = await fetch(url, options);
+
+        const result = await parseResponse(response);
+
+        if (onFetchItems) {
+          await onFetchItems();
+        }
+
+        showSuccessAlert(
+          result.message ||
+            (currentItem
+              ? `${title} updated successfully.`
+              : `New ${title} added successfully.`),
+        );
+
+        setIsModalOpen(false);
+        setCurrentItem(null);
+        setFormData({ ...emptyForm });
+      } catch (error) {
+        console.error("Save Error:", error);
+
+        showErrorAlert(error.message || "An unexpected error occurred.");
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [
+      currentItem,
+      primaryKey,
+      apiEndpoint,
+      getHeaders,
+      parseResponse,
+      onFetchItems,
+      title,
+      emptyForm,
+    ],
+  );
+
+  /* =====================================================
+   * DELETE RECORD
+   * =================================================== */
+
+  const handleDelete = useCallback(
+    async (id) => {
+      if (!(await showDeleteConfirmDialog())) {
+        return;
+      }
+
+      try {
+        showLoadingPopup("Removing record...");
+
+        const response = await fetch(`${apiEndpoint}/${id}`, {
+          method: "DELETE",
           headers: getHeaders(),
-          body: formDataOrEvent,
-        };
-      } else {
-        options = {
-          method: currentItem ? "PUT" : "POST",
+        });
+
+        const result = await parseResponse(response);
+
+        if (onFetchItems) {
+          await onFetchItems();
+        }
+
+        showSuccessAlert(result.message || "Record removed successfully.");
+      } catch (error) {
+        console.error("Delete Error:", error);
+
+        showErrorAlert(error.message || "Could not delete the record.");
+      }
+    },
+    [apiEndpoint, getHeaders, parseResponse, onFetchItems],
+  );
+
+  /* =====================================================
+   * TOGGLE STATUS
+   * =================================================== */
+
+  const toggleStatus = useCallback(
+    async (id) => {
+      const target = items.find(
+        (item) => String(item[primaryKey]) === String(id),
+      );
+
+      if (!target) {
+        showErrorAlert("The selected record could not be found.");
+        return;
+      }
+
+      const currentStatus = target[statusKey] || "Active";
+
+      const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
+
+      if (!(await showStatusConfirmDialog(nextStatus))) {
+        return;
+      }
+
+      try {
+        showLoadingPopup("Updating status...");
+
+        const response = await fetch(`${apiEndpoint}/${id}`, {
+          method: "PUT",
           headers: getHeaders({
             "Content-Type": "application/json",
           }),
-          body: JSON.stringify(formDataOrEvent),
-        };
+          body: JSON.stringify({
+            [statusKey]: nextStatus,
+          }),
+        });
+
+        const result = await parseResponse(response);
+
+        if (onFetchItems) {
+          await onFetchItems();
+        }
+
+        showSuccessAlert(
+          result.message || `Status switched to ${nextStatus}.`,
+          1200,
+        );
+      } catch (error) {
+        console.error("Status Update Error:", error);
+
+        showErrorAlert(error.message || "Status update failed.");
       }
+    },
+    [
+      items,
+      primaryKey,
+      statusKey,
+      apiEndpoint,
+      getHeaders,
+      parseResponse,
+      onFetchItems,
+    ],
+  );
 
-      const response = await fetch(url, options);
-      const result = await parseResponse(response);
+  /* =====================================================
+   * TAB COUNTS
+   * =================================================== */
 
-      if (onFetchItems) {
-        await onFetchItems();
-      }
+  const tabCounts = useMemo(
+    () =>
+      configuredTabs.reduce((counts, tab) => {
+        counts[tab.value] = items.filter((item) =>
+          matchesTab(item, tab, statusKey),
+        ).length;
 
-      showSuccessAlert(
-        result.message ||
-          (currentItem
-            ? `${title} updated successfully.`
-            : `New ${title} added successfully.`)
-      );
+        return counts;
+      }, {}),
+    [items, configuredTabs, statusKey],
+  );
 
-      setIsModalOpen(false);
-      setCurrentItem(null);
-      setFormData({ ...emptyForm });
-    } catch (error) {
-      console.error("Save Error:", error);
-
-      showErrorAlert(
-        error.message || "An unexpected error occurred."
-      );
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // --------------------------------------------------------
-  // Delete record
-  // --------------------------------------------------------
-
-  const handleDelete = async (id) => {
-    if (!(await showDeleteConfirmDialog())) return;
-
-    try {
-      showLoadingPopup("Removing record...");
-
-      const response = await fetch(`${apiEndpoint}/${id}`, {
-        method: "DELETE",
-        headers: getHeaders(),
-      });
-
-      const result = await parseResponse(response);
-
-      if (onFetchItems) {
-        await onFetchItems();
-      }
-
-      showSuccessAlert(
-        result.message || "Record removed successfully."
-      );
-    } catch (error) {
-      console.error("Delete Error:", error);
-
-      showErrorAlert(
-        error.message || "Could not delete the record."
-      );
-    }
-  };
-
-  // --------------------------------------------------------
-  // Toggle record status
-  // --------------------------------------------------------
-
-  const toggleStatus = async (id) => {
-    const target = items.find(
-      (item) =>
-        String(item[primaryKey]) === String(id)
-    );
-
-    if (!target) {
-      showErrorAlert("The selected record could not be found.");
-      return;
-    }
-
-    const currentStatus = target[statusKey] || "Active";
-
-    const nextStatus =
-      currentStatus === "Active" ? "Inactive" : "Active";
-
-    if (!(await showStatusConfirmDialog(nextStatus))) {
-      return;
-    }
-
-    try {
-      showLoadingPopup("Updating status...");
-
-      const response = await fetch(`${apiEndpoint}/${id}`, {
-        method: "PUT",
-        headers: getHeaders({
-          "Content-Type": "application/json",
-        }),
-        body: JSON.stringify({
-          [statusKey]: nextStatus,
-        }),
-      });
-
-      const result = await parseResponse(response);
-
-      if (onFetchItems) {
-        await onFetchItems();
-      }
-
-      showSuccessAlert(
-        result.message || `Status switched to ${nextStatus}.`,
-        1200
-      );
-    } catch (error) {
-      console.error("Status Update Error:", error);
-
-      showErrorAlert(
-        error.message || "Status update failed."
-      );
-    }
-  };
-
-  // --------------------------------------------------------
-  // Filter records
-  // --------------------------------------------------------
+  /* =====================================================
+   * FILTER RECORDS
+   * If no tabs are configured, show every record.
+   * =================================================== */
 
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      const itemStatus = item[statusKey] || "Active";
+    if (configuredTabs.length === 0) {
+      return items;
+    }
 
-      return itemStatus === activeTab;
-    });
-  }, [items, activeTab, statusKey]);
+    const selectedTab = configuredTabs.find((tab) => tab.value === activeTab);
 
-  // --------------------------------------------------------
-  // Table columns
-  // --------------------------------------------------------
+    if (!selectedTab) {
+      return items;
+    }
 
-  const tableColumns = useMemo(() => {
-    return typeof columns === "function"
-      ? columns(handleOpenModal, handleDelete, toggleStatus)
-      : columns;
-  }, [columns, items, activeTab]);
+    return items.filter((item) => matchesTab(item, selectedTab, statusKey));
+  }, [items, configuredTabs, activeTab, statusKey]);
 
-  // --------------------------------------------------------
-  // Render
-  // --------------------------------------------------------
+  /* =====================================================
+   * TABLE COLUMNS
+   * =================================================== */
+
+  const tableColumns = useMemo(
+    () =>
+      typeof columns === "function"
+        ? columns(handleOpenModal, handleDelete, toggleStatus)
+        : columns,
+    [columns, handleOpenModal, handleDelete, toggleStatus],
+  );
+
+  /* =====================================================
+   * EMAIL DISPATCH
+   * =================================================== */
+
+  const handleOpenEmailDispatch = useCallback(
+    () => setIsEmailDispatchOpen(true),
+    [],
+  );
+
+  const emailDispatchButton = (
+    <button
+      type="button"
+      onClick={handleOpenEmailDispatch}
+      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+    >
+      <i className="bi bi-send text-sm" aria-hidden="true" />
+      <span>Email Dispatch</span>
+    </button>
+  );
+
+  /* =====================================================
+   * DEFAULT HEADER
+   * =================================================== */
+
+  const defaultHeader = (
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-wrap items-center gap-2">
+        {showTabs &&
+          configuredTabs.map((tab) => {
+            const selected = activeTab === tab.value;
+
+            const selectedStyles = {
+              emerald: "bg-emerald-600 text-white border-emerald-600",
+              rose: "bg-rose-600 text-white border-rose-600",
+              red: "bg-red-600 text-white border-red-600",
+              blue: "bg-blue-600 text-white border-blue-600",
+              violet: "bg-violet-600 text-white border-violet-600",
+              amber: "bg-amber-500 text-white border-amber-500",
+              slate: "bg-slate-700 text-white border-slate-700",
+            };
+
+            return (
+              <button
+                key={String(tab.value)}
+                type="button"
+                onClick={() => setActiveTab(tab.value)}
+                aria-pressed={selected}
+                className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-emerald-300 ${
+                  selected
+                    ? selectedStyles[tab.color] || selectedStyles.emerald
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {tab.icon && <i className={tab.icon} aria-hidden="true" />}
+
+                <span>{tab.label}</span>
+
+                {showTabCounts && (
+                  <span
+                    className={`min-w-5 rounded-full px-1.5 py-0.5 text-[10px] ${
+                      selected ? "bg-white/20" : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {tabCounts[tab.value] ?? 0}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => handleOpenModal()}
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        >
+          <i className="bi bi-plus-lg text-sm" aria-hidden="true" />
+          <span>Add {title}</span>
+        </button>
+
+        {showEmailDispatch && emailDispatchButton}
+      </div>
+    </div>
+  );
+
+  /* =====================================================
+   * CUSTOM HEADER
+   * =================================================== */
+
+  const customHeaderContent =
+    typeof header === "function"
+      ? header({
+          activeTab,
+          setActiveTab,
+          handleOpenModal,
+          handleOpenEmailDispatch,
+          title,
+          tabs: configuredTabs,
+          tabCounts,
+          items,
+          filteredItems,
+          loading,
+          isSaving,
+        })
+      : header;
+
+  /* =====================================================
+   * RENDER
+   * =================================================== */
 
   return (
     <div className="space-y-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        {/* Active / Inactive tabs */}
-        <div className="flex self-start gap-1.5 rounded-xl bg-slate-100/80 p-1">
-          {["Active", "Inactive"].map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              aria-pressed={activeTab === tab}
-              className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                activeTab === tab
-                  ? tab === "Active"
-                    ? "bg-emerald-600 text-white shadow-sm"
-                    : "bg-rose-600 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-200/50 hover:text-slate-900"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+      {header ? (
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0 flex-1">{customHeaderContent}</div>
+
+          {showEmailDispatch && emailDispatchButton}
         </div>
+      ) : (
+        defaultHeader
+      )}
 
-        {/* Actions */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Add */}
-          <button
-            type="button"
-            onClick={() => handleOpenModal()}
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
-          >
-            <i className="bi bi-plus-lg text-sm" />
-            <span>Add {title}</span>
-          </button>
-
-          {/* Email Dispatch */}
-          <button
-            type="button"
-            onClick={() => setIsEmailDispatchOpen(true)}
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
-          >
-            <i className="bi bi-send text-sm" />
-            <span>Email Dispatch</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Data table */}
       <DataTable
         data={filteredItems}
         columns={tableColumns}
@@ -377,7 +611,6 @@ export default function FileCrudManager({
         emptyMessage="No records found"
       />
 
-      {/* CRUD form modal */}
       {FormComponent && (
         <FormComponent
           isOpen={isModalOpen}
@@ -392,13 +625,14 @@ export default function FileCrudManager({
         />
       )}
 
-      {/* Independent email dispatch modal */}
-      <EmailDispatchForm
-        isOpen={isEmailDispatchOpen}
-        onClose={() => setIsEmailDispatchOpen(false)}
-        endpoint={emailDispatchEndpoint}
-        title="Email Dispatch"
-      />
+      {showEmailDispatch && (
+        <EmailDispatchForm
+          isOpen={isEmailDispatchOpen}
+          onClose={() => setIsEmailDispatchOpen(false)}
+          endpoint={emailDispatchEndpoint}
+          title="Email Dispatch"
+        />
+      )}
     </div>
   );
 }
