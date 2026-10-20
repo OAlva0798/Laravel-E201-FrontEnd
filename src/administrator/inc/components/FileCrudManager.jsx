@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 
 import {
@@ -9,7 +10,6 @@ import {
 } from "../../../assets/js/swalHelpers";
 
 import DataTable from "../../../assets/function/DataTable";
-import EmailDispatchForm from "../../Maintenance/UserDetails/EmailDispatchForm";
 
 /* =========================================================
  * FILTER HELPERS
@@ -30,7 +30,8 @@ const matchesTab = (item, tab, statusKey) => {
 
   if (Array.isArray(tab.filterValues)) {
     return tab.filterValues.some(
-      (value) => normalizeValue(actualValue) === normalizeValue(value),
+      (value) =>
+        normalizeValue(actualValue) === normalizeValue(value)
     );
   }
 
@@ -62,7 +63,6 @@ const matchesTab = (item, tab, statusKey) => {
 
 export default function FileCrudManager({
   apiEndpoint,
-  emailDispatchEndpoint,
 
   primaryKey = "id",
   statusKey = "status",
@@ -78,17 +78,14 @@ export default function FileCrudManager({
 
   modalSize,
 
-  // No built-in/default tabs.
+  // Configurable tabs.
   tabs = [],
   defaultTab,
   showTabs = true,
   showTabCounts = false,
 
-  // Custom header renderer.
+  // Optional custom header renderer.
   header = null,
-
-  // Email dispatch visibility.
-  showEmailDispatch = true,
 }) {
   /* =====================================================
    * CONFIGURED TABS
@@ -102,14 +99,14 @@ export default function FileCrudManager({
         value: tab.value ?? tab.label,
         filterKey: tab.filterKey ?? statusKey,
       })),
-    [tabs, statusKey],
+    [tabs, statusKey]
   );
 
   const resolvedDefaultTab = useMemo(() => {
-    const requestedTab = defaultTab;
-
-    if (configuredTabs.some((tab) => tab.value === requestedTab)) {
-      return requestedTab;
+    if (
+      configuredTabs.some((tab) => tab.value === defaultTab)
+    ) {
+      return defaultTab;
     }
 
     return configuredTabs[0]?.value ?? null;
@@ -117,9 +114,10 @@ export default function FileCrudManager({
 
   const [activeTab, setActiveTab] = useState(resolvedDefaultTab);
 
-  // Keep the selected tab valid when a page's tabs change.
   useEffect(() => {
-    const exists = configuredTabs.some((tab) => tab.value === activeTab);
+    const exists = configuredTabs.some(
+      (tab) => tab.value === activeTab
+    );
 
     if (!exists) {
       setActiveTab(resolvedDefaultTab);
@@ -131,13 +129,8 @@ export default function FileCrudManager({
    * =================================================== */
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEmailDispatchOpen, setIsEmailDispatchOpen] = useState(false);
-
   const [currentItem, setCurrentItem] = useState(null);
-  const [formData, setFormData] = useState({
-    ...emptyForm,
-  });
-
+  const [formData, setFormData] = useState({ ...emptyForm });
   const [isSaving, setIsSaving] = useState(false);
 
   /* =====================================================
@@ -149,7 +142,7 @@ export default function FileCrudManager({
       localStorage.getItem("access_token") ||
       sessionStorage.getItem("access_token") ||
       "",
-    [],
+    []
   );
 
   const getHeaders = useCallback(
@@ -159,14 +152,12 @@ export default function FileCrudManager({
       return {
         Accept: "application/json",
         ...(token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
+          ? { Authorization: `Bearer ${token}` }
           : {}),
         ...additionalHeaders,
       };
     },
-    [getToken],
+    [getToken]
   );
 
   /* =====================================================
@@ -210,7 +201,7 @@ export default function FileCrudManager({
         });
       } else {
         const selectedTab = configuredTabs.find(
-          (tab) => tab.value === activeTab,
+          (tab) => tab.value === activeTab
         );
 
         const initialStatus =
@@ -222,16 +213,14 @@ export default function FileCrudManager({
         setFormData({
           ...emptyForm,
           ...(statusKey
-            ? {
-                [statusKey]: initialStatus,
-              }
+            ? { [statusKey]: initialStatus }
             : {}),
         });
       }
 
       setIsModalOpen(true);
     },
-    [emptyForm, configuredTabs, activeTab, statusKey],
+    [emptyForm, configuredTabs, activeTab, statusKey]
   );
 
   /* =====================================================
@@ -267,13 +256,18 @@ export default function FileCrudManager({
         setIsSaving(true);
 
         showLoadingPopup(
-          currentItem ? "Updating record..." : "Creating new record...",
+          currentItem
+            ? "Updating record..."
+            : "Creating new record..."
         );
 
         const identifier =
-          customId || (currentItem ? currentItem[primaryKey] : null);
+          customId ||
+          (currentItem ? currentItem[primaryKey] : null);
 
-        const url = identifier ? `${apiEndpoint}/${identifier}` : apiEndpoint;
+        const url = identifier
+          ? `${apiEndpoint}/${identifier}`
+          : apiEndpoint;
 
         let options;
 
@@ -299,7 +293,6 @@ export default function FileCrudManager({
         }
 
         const response = await fetch(url, options);
-
         const result = await parseResponse(response);
 
         if (onFetchItems) {
@@ -310,7 +303,7 @@ export default function FileCrudManager({
           result.message ||
             (currentItem
               ? `${title} updated successfully.`
-              : `New ${title} added successfully.`),
+              : `New ${title} added successfully.`)
         );
 
         setIsModalOpen(false);
@@ -319,7 +312,9 @@ export default function FileCrudManager({
       } catch (error) {
         console.error("Save Error:", error);
 
-        showErrorAlert(error.message || "An unexpected error occurred.");
+        showErrorAlert(
+          error.message || "An unexpected error occurred."
+        );
       } finally {
         setIsSaving(false);
       }
@@ -333,7 +328,7 @@ export default function FileCrudManager({
       onFetchItems,
       title,
       emptyForm,
-    ],
+    ]
   );
 
   /* =====================================================
@@ -360,14 +355,18 @@ export default function FileCrudManager({
           await onFetchItems();
         }
 
-        showSuccessAlert(result.message || "Record removed successfully.");
+        showSuccessAlert(
+          result.message || "Record removed successfully."
+        );
       } catch (error) {
         console.error("Delete Error:", error);
 
-        showErrorAlert(error.message || "Could not delete the record.");
+        showErrorAlert(
+          error.message || "Could not delete the record."
+        );
       }
     },
-    [apiEndpoint, getHeaders, parseResponse, onFetchItems],
+    [apiEndpoint, getHeaders, parseResponse, onFetchItems]
   );
 
   /* =====================================================
@@ -377,17 +376,20 @@ export default function FileCrudManager({
   const toggleStatus = useCallback(
     async (id) => {
       const target = items.find(
-        (item) => String(item[primaryKey]) === String(id),
+        (item) =>
+          String(item[primaryKey]) === String(id)
       );
 
       if (!target) {
-        showErrorAlert("The selected record could not be found.");
+        showErrorAlert(
+          "The selected record could not be found."
+        );
         return;
       }
 
       const currentStatus = target[statusKey] || "Active";
-
-      const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
+      const nextStatus =
+        currentStatus === "Active" ? "Inactive" : "Active";
 
       if (!(await showStatusConfirmDialog(nextStatus))) {
         return;
@@ -414,12 +416,14 @@ export default function FileCrudManager({
 
         showSuccessAlert(
           result.message || `Status switched to ${nextStatus}.`,
-          1200,
+          1200
         );
       } catch (error) {
         console.error("Status Update Error:", error);
 
-        showErrorAlert(error.message || "Status update failed.");
+        showErrorAlert(
+          error.message || "Status update failed."
+        );
       }
     },
     [
@@ -430,7 +434,7 @@ export default function FileCrudManager({
       getHeaders,
       parseResponse,
       onFetchItems,
-    ],
+    ]
   );
 
   /* =====================================================
@@ -441,17 +445,16 @@ export default function FileCrudManager({
     () =>
       configuredTabs.reduce((counts, tab) => {
         counts[tab.value] = items.filter((item) =>
-          matchesTab(item, tab, statusKey),
+          matchesTab(item, tab, statusKey)
         ).length;
 
         return counts;
       }, {}),
-    [items, configuredTabs, statusKey],
+    [items, configuredTabs, statusKey]
   );
 
   /* =====================================================
    * FILTER RECORDS
-   * If no tabs are configured, show every record.
    * =================================================== */
 
   const filteredItems = useMemo(() => {
@@ -459,13 +462,17 @@ export default function FileCrudManager({
       return items;
     }
 
-    const selectedTab = configuredTabs.find((tab) => tab.value === activeTab);
+    const selectedTab = configuredTabs.find(
+      (tab) => tab.value === activeTab
+    );
 
     if (!selectedTab) {
       return items;
     }
 
-    return items.filter((item) => matchesTab(item, selectedTab, statusKey));
+    return items.filter((item) =>
+      matchesTab(item, selectedTab, statusKey)
+    );
   }, [items, configuredTabs, activeTab, statusKey]);
 
   /* =====================================================
@@ -477,27 +484,7 @@ export default function FileCrudManager({
       typeof columns === "function"
         ? columns(handleOpenModal, handleDelete, toggleStatus)
         : columns,
-    [columns, handleOpenModal, handleDelete, toggleStatus],
-  );
-
-  /* =====================================================
-   * EMAIL DISPATCH
-   * =================================================== */
-
-  const handleOpenEmailDispatch = useCallback(
-    () => setIsEmailDispatchOpen(true),
-    [],
-  );
-
-  const emailDispatchButton = (
-    <button
-      type="button"
-      onClick={handleOpenEmailDispatch}
-      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-    >
-      <i className="bi bi-send text-sm" aria-hidden="true" />
-      <span>Email Dispatch</span>
-    </button>
+    [columns, handleOpenModal, handleDelete, toggleStatus]
   );
 
   /* =====================================================
@@ -512,12 +499,15 @@ export default function FileCrudManager({
             const selected = activeTab === tab.value;
 
             const selectedStyles = {
-              emerald: "bg-emerald-600 text-white border-emerald-600",
+              emerald:
+                "bg-emerald-600 text-white border-emerald-600",
               rose: "bg-rose-600 text-white border-rose-600",
               red: "bg-red-600 text-white border-red-600",
               blue: "bg-blue-600 text-white border-blue-600",
-              violet: "bg-violet-600 text-white border-violet-600",
-              amber: "bg-amber-500 text-white border-amber-500",
+              violet:
+                "bg-violet-600 text-white border-violet-600",
+              amber:
+                "bg-amber-500 text-white border-amber-500",
               slate: "bg-slate-700 text-white border-slate-700",
             };
 
@@ -529,18 +519,23 @@ export default function FileCrudManager({
                 aria-pressed={selected}
                 className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-emerald-300 ${
                   selected
-                    ? selectedStyles[tab.color] || selectedStyles.emerald
+                    ? selectedStyles[tab.color] ||
+                      selectedStyles.emerald
                     : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                {tab.icon && <i className={tab.icon} aria-hidden="true" />}
+                {tab.icon && (
+                  <i className={tab.icon} aria-hidden="true" />
+                )}
 
                 <span>{tab.label}</span>
 
                 {showTabCounts && (
                   <span
                     className={`min-w-5 rounded-full px-1.5 py-0.5 text-[10px] ${
-                      selected ? "bg-white/20" : "bg-slate-100 text-slate-600"
+                      selected
+                        ? "bg-white/20"
+                        : "bg-slate-100 text-slate-600"
                     }`}
                   >
                     {tabCounts[tab.value] ?? 0}
@@ -560,8 +555,6 @@ export default function FileCrudManager({
           <i className="bi bi-plus-lg text-sm" aria-hidden="true" />
           <span>Add {title}</span>
         </button>
-
-        {showEmailDispatch && emailDispatchButton}
       </div>
     </div>
   );
@@ -576,7 +569,8 @@ export default function FileCrudManager({
           activeTab,
           setActiveTab,
           handleOpenModal,
-          handleOpenEmailDispatch,
+          handleDelete,
+          toggleStatus,
           title,
           tabs: configuredTabs,
           tabCounts,
@@ -593,15 +587,9 @@ export default function FileCrudManager({
 
   return (
     <div className="space-y-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-      {header ? (
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="min-w-0 flex-1">{customHeaderContent}</div>
-
-          {showEmailDispatch && emailDispatchButton}
-        </div>
-      ) : (
-        defaultHeader
-      )}
+      <div className="min-w-0">
+        {header ? customHeaderContent : defaultHeader}
+      </div>
 
       <DataTable
         data={filteredItems}
@@ -622,15 +610,6 @@ export default function FileCrudManager({
           onSubmit={handleSave}
           isLoading={isSaving}
           modalSize={modalSize}
-        />
-      )}
-
-      {showEmailDispatch && (
-        <EmailDispatchForm
-          isOpen={isEmailDispatchOpen}
-          onClose={() => setIsEmailDispatchOpen(false)}
-          endpoint={emailDispatchEndpoint}
-          title="Email Dispatch"
         />
       )}
     </div>

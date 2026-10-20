@@ -8,15 +8,6 @@ import {
 } from "../../../assets/js/swalHelpers";
 import DataTable from "../../../assets/function/DataTable";
 
-const TAB_COLORS = {
-  emerald: "bg-emerald-600 text-white shadow-xs",
-  blue: "bg-blue-600 text-white shadow-xs",
-  rose: "bg-rose-600 text-white shadow-xs",
-  amber: "bg-amber-500 text-white shadow-xs",
-  violet: "bg-violet-600 text-white shadow-xs",
-  slate: "bg-slate-700 text-white shadow-xs",
-  teal: "bg-teal-600 text-white shadow-xs",
-};
 
 const normalizeValue = (value) =>
   String(value ?? "")
@@ -266,10 +257,6 @@ export default function CrudManager({
     }, {});
   }, [items, configuredTabs, tabFilterKey, statusKey]);
 
-  const getTabColor = (tab) => {
-    if (tab.activeClassName) return tab.activeClassName;
-    return TAB_COLORS[tab.color] ?? TAB_COLORS.emerald;
-  };
 
   return (
     <div className="space-y-3 rounded-lg border border-slate-200/80 bg-white p-3.5 shadow-xs">
@@ -300,7 +287,7 @@ export default function CrudManager({
                 aria-pressed={isSelected}
                 className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-semibold transition-all ${
                   isSelected
-                    ? `border-transparent ${getTabColor(tab)}`
+                    ? `border-transparent`
                     : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50/80"
                 }`}
               >

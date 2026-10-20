@@ -5,10 +5,12 @@ import Header   from "./inc/Header";
 
 import Dashboard    from "./Dashboard";
 import Profile      from "./profile/Profile";
+
+import Employees       from "./Employees/EmployeesContent";
+
 import Company       from "./Maintenance/Company/CompanyContent";
 import Center       from "./Maintenance/Center/CenterContent";
 import DepartmentPosition       from "./Maintenance/Department_Position/DepartmentPositionContent";
-import Department   from "./Maintenance/Department/DepartmentContent";
 import PositionLevel     from "./Maintenance/PositionLevel/PositionLevelContent";
 import UserDetails  from "./Maintenance/UserDetails/UserDetailsContent";
 
@@ -59,6 +61,14 @@ export const TAB_CONFIG = {
     label: "Dashboard",
     section: "main",
     icon: <i className="bi bi-house-door text-xl" />,
+  },
+
+  employees: {
+    title: "Employees",
+    component: <Employees />,
+    label: "Employees",
+    section: "main",
+    icon: <i className="bi bi-people text-xl" />,
   },
 
   // ========================================================
