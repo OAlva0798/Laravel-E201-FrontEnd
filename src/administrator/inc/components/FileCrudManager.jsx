@@ -1,5 +1,10 @@
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+} from "react";
 
 import {
   showLoadingPopup,
@@ -12,13 +17,11 @@ import {
 import DataTable from "../../../assets/function/DataTable";
 
 /* =========================================================
- * FILTER HELPERS
+ * HELPERS
  * ======================================================= */
 
 const normalizeValue = (value) =>
-  String(value ?? "")
-    .trim()
-    .toLowerCase();
+  String(value ?? "").trim().toLowerCase();
 
 const matchesTab = (item, tab, statusKey) => {
   if (typeof tab.filter === "function") {
@@ -57,38 +60,48 @@ const matchesTab = (item, tab, statusKey) => {
   }
 };
 
+const getErrorMessage = (result, fallback) => {
+  if (result?.errors) {
+    const firstError = Object.values(result.errors).flat()[0];
+
+    if (firstError) return String(firstError);
+  }
+
+  return result?.message || result?.detail || fallback;
+};
+
+const getRecordIdentifier = (item, primaryKey) =>
+  item?.[primaryKey] ??
+  item?.id ??
+  item?.reference ??
+  null;
+
 /* =========================================================
  * FILE CRUD MANAGER
  * ======================================================= */
 
 export default function FileCrudManager({
   apiEndpoint,
-
   primaryKey = "id",
   statusKey = "status",
-
   title = "Records",
   emptyForm = {},
   columns = [],
   FormComponent,
-
+  FormmodalSize,
+  ViewComponent,
+  ViewmodalSize,
   items = [],
   loading = false,
   onFetchItems,
-
-  modalSize,
-
-  // Configurable tabs.
   tabs = [],
   defaultTab,
   showTabs = true,
   showTabCounts = false,
-
-  // Optional custom header renderer.
   header = null,
 }) {
   /* =====================================================
-   * CONFIGURED TABS
+   * TABS
    * =================================================== */
 
   const configuredTabs = useMemo(
@@ -103,13 +116,11 @@ export default function FileCrudManager({
   );
 
   const resolvedDefaultTab = useMemo(() => {
-    if (
-      configuredTabs.some((tab) => tab.value === defaultTab)
-    ) {
-      return defaultTab;
-    }
+    const requestedTab = configuredTabs.find(
+      (tab) => tab.value === defaultTab
+    );
 
-    return configuredTabs[0]?.value ?? null;
+    return requestedTab?.value ?? configuredTabs[0]?.value ?? null;
   }, [configuredTabs, defaultTab]);
 
   const [activeTab, setActiveTab] = useState(resolvedDefaultTab);
@@ -128,13 +139,14 @@ export default function FileCrudManager({
    * STATE
    * =================================================== */
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState(null);
-  const [formData, setFormData] = useState({ ...emptyForm });
-  const [isSaving, setIsSaving] = useState(false);
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [currentItem, setCurrentItem] = useState(null);
+const [formData, setFormData] = useState(() => ({ ...emptyForm }));
+const [isSaving, setIsSaving] = useState(false);
+const [isViewMode, setIsViewMode] = useState(false);
 
   /* =====================================================
-   * AUTHENTICATION
+   * AUTHENTICATION AND REQUEST HELPERS
    * =================================================== */
 
   const getToken = useCallback(
@@ -160,39 +172,39 @@ export default function FileCrudManager({
     [getToken]
   );
 
-  /* =====================================================
-   * RESPONSE HANDLER
-   * =================================================== */
-
   const parseResponse = useCallback(async (response) => {
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      let message = result.message || "Something went wrong.";
-
-      if (response.status === 422 && result.errors) {
-        const firstError = Object.values(result.errors)[0];
-
-        if (firstError) {
-          message = Array.isArray(firstError)
-            ? firstError[0]
-            : String(firstError);
-        }
-      }
-
-      throw new Error(message);
+      throw new Error(
+        getErrorMessage(
+          result,
+          `Request failed with status ${response.status}.`
+        )
+      );
     }
 
     return result;
   }, []);
 
+  const refreshItems = useCallback(async () => {
+    if (typeof onFetchItems === "function") {
+      await onFetchItems();
+    }
+  }, [onFetchItems]);
+
   /* =====================================================
-   * OPEN CRUD MODAL
+   * OPEN MODAL
    * =================================================== */
 
+  /* =====================================================
+ * OPEN MODAL: ADD / EDIT / VIEW
+ * =================================================== */
+
   const handleOpenModal = useCallback(
-    (item = null) => {
+    (item = null, mode = "edit") => {
       setCurrentItem(item);
+      setIsViewMode(mode === "view");
 
       if (item) {
         setFormData({
@@ -224,108 +236,135 @@ export default function FileCrudManager({
   );
 
   /* =====================================================
-   * CLOSE CRUD MODAL
+   * CLOSE MODAL
    * =================================================== */
 
   const handleCloseModal = useCallback(() => {
     if (isSaving) return;
 
     setIsModalOpen(false);
+    setIsViewMode(false);
     setCurrentItem(null);
     setFormData({ ...emptyForm });
   }, [isSaving, emptyForm]);
 
   /* =====================================================
    * SAVE RECORD
+   *
+   * FormComponent should call:
+   * onSubmit(payload)
+   *
+   * payload may be a plain object or FormData.
    * =================================================== */
 
   const handleSave = useCallback(
-    async (formDataOrEvent, customId = null) => {
-      const isMultipart = formDataOrEvent instanceof FormData;
+    async (payload, customId = null) => {
+      // Support forms that pass their submit event.
+      // The controlled data is then taken from manager state.
+      if (
+        payload &&
+        typeof payload.preventDefault === "function"
+      ) {
+        payload.preventDefault();
+        payload = formData;
+      }
+
+      if (payload == null) {
+        showErrorAlert("No employee data was provided.");
+        return;
+      }
+
+      const isMultipart = payload instanceof FormData;
 
       if (
         !isMultipart &&
-        formDataOrEvent &&
-        typeof formDataOrEvent.preventDefault === "function"
+        (typeof payload !== "object" || Array.isArray(payload))
       ) {
-        formDataOrEvent.preventDefault();
+        showErrorAlert("The submitted form data is invalid.");
         return;
       }
+
+      const identifier =
+        customId || getRecordIdentifier(currentItem, primaryKey);
+
+      const isUpdating = Boolean(identifier);
 
       try {
         setIsSaving(true);
 
         showLoadingPopup(
-          currentItem
-            ? "Updating record..."
-            : "Creating new record..."
+          isUpdating ? "Updating record..." : "Creating record..."
         );
 
-        const identifier =
-          customId ||
-          (currentItem ? currentItem[primaryKey] : null);
+        const baseUrl = String(apiEndpoint || "").replace(/\/+$/, "");
 
-        const url = identifier
-          ? `${apiEndpoint}/${identifier}`
-          : apiEndpoint;
+        if (!baseUrl) {
+          throw new Error("The API endpoint is not configured.");
+        }
+
+        const url = isUpdating
+          ? `${baseUrl}/${encodeURIComponent(identifier)}`
+          : baseUrl;
 
         let options;
 
         if (isMultipart) {
-          // Laravel multipart PUT workaround.
-          if (currentItem && !formDataOrEvent.has("_method")) {
-            formDataOrEvent.append("_method", "PUT");
+          // Laravel handles multipart file updates through POST
+          // with the _method=PUT field.
+          if (isUpdating && !payload.has("_method")) {
+            payload.append("_method", "PUT");
           }
 
           options = {
             method: "POST",
             headers: getHeaders(),
-            body: formDataOrEvent,
+            body: payload,
           };
         } else {
           options = {
-            method: currentItem ? "PUT" : "POST",
+            method: isUpdating ? "PUT" : "POST",
             headers: getHeaders({
               "Content-Type": "application/json",
             }),
-            body: JSON.stringify(formDataOrEvent),
+            body: JSON.stringify(payload),
           };
         }
 
         const response = await fetch(url, options);
         const result = await parseResponse(response);
 
-        if (onFetchItems) {
-          await onFetchItems();
-        }
+        await refreshItems();
 
         showSuccessAlert(
           result.message ||
-            (currentItem
+            (isUpdating
               ? `${title} updated successfully.`
-              : `New ${title} added successfully.`)
+              : `${title} created successfully.`)
         );
 
         setIsModalOpen(false);
         setCurrentItem(null);
         setFormData({ ...emptyForm });
+
+        return result;
       } catch (error) {
         console.error("Save Error:", error);
-
         showErrorAlert(
-          error.message || "An unexpected error occurred."
+          error.message || "Unable to save this record."
         );
+        throw error;
       } finally {
         setIsSaving(false);
       }
     },
     [
+      formData,
       currentItem,
       primaryKey,
       apiEndpoint,
       getHeaders,
       parseResponse,
-      onFetchItems,
+      refreshItems,
       title,
       emptyForm,
     ]
@@ -335,110 +374,162 @@ export default function FileCrudManager({
    * DELETE RECORD
    * =================================================== */
 
-  const handleDelete = useCallback(
-    async (id) => {
-      if (!(await showDeleteConfirmDialog())) {
-        return;
+  /* =========================================================
+ * SOFT DELETE RECORD
+ *
+ * Updates the status to "Deleted".
+ * Does not physically delete the database record.
+ * ======================================================= */
+
+const handleDelete = useCallback(
+  async (id) => {
+    if (id == null || id === "") {
+      showErrorAlert("The record identifier is missing.");
+      return;
+    }
+
+    const target = items.find(
+      (item) =>
+        String(getRecordIdentifier(item, primaryKey)) ===
+        String(id)
+    );
+
+    if (!target) {
+      showErrorAlert("The selected record could not be found.");
+      return;
+    }
+
+    if (normalizeValue(target[statusKey]) === "deleted") {
+      showErrorAlert("This record has already been deleted.");
+      return;
+    }
+
+    const confirmed = await showDeleteConfirmDialog();
+
+    if (!confirmed) return;
+
+    try {
+      showLoadingPopup("Marking record as deleted...");
+
+      const baseUrl = String(apiEndpoint || "").replace(/\/+$/, "");
+
+      if (!baseUrl) {
+        throw new Error("The API endpoint is not configured.");
       }
 
-      try {
-        showLoadingPopup("Removing record...");
-
-        const response = await fetch(`${apiEndpoint}/${id}`, {
-          method: "DELETE",
-          headers: getHeaders(),
-        });
-
-        const result = await parseResponse(response);
-
-        if (onFetchItems) {
-          await onFetchItems();
+      const response = await fetch(
+        `${baseUrl}/${encodeURIComponent(id)}/status`,
+        {
+          method: "PATCH",
+          headers: getHeaders({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify({
+            [statusKey]: "Deleted",
+          }),
         }
+      );
 
-        showSuccessAlert(
-          result.message || "Record removed successfully."
-        );
-      } catch (error) {
-        console.error("Delete Error:", error);
+      const result = await parseResponse(response);
 
-        showErrorAlert(
-          error.message || "Could not delete the record."
-        );
-      }
-    },
-    [apiEndpoint, getHeaders, parseResponse, onFetchItems]
-  );
+      await refreshItems();
+
+      showSuccessAlert(
+        result.message || "Record marked as deleted successfully."
+      );
+    } catch (error) {
+      console.error("Soft Delete Error:", error);
+
+      showErrorAlert(
+        error.message || "Could not mark this record as deleted."
+      );
+    }
+  },
+  [
+    items,
+    primaryKey,
+    statusKey,
+    apiEndpoint,
+    getHeaders,
+    parseResponse,
+    refreshItems,
+  ]
+);
 
   /* =====================================================
    * TOGGLE STATUS
    * =================================================== */
+const toggleStatus = useCallback(
+  async (id) => {
+    const target = items.find(
+      (item) =>
+        String(getRecordIdentifier(item, primaryKey)) ===
+        String(id)
+    );
 
-  const toggleStatus = useCallback(
-    async (id) => {
-      const target = items.find(
-        (item) =>
-          String(item[primaryKey]) === String(id)
-      );
+    if (!target) {
+      showErrorAlert("The selected record could not be found.");
+      return;
+    }
 
-      if (!target) {
-        showErrorAlert(
-          "The selected record could not be found."
-        );
-        return;
-      }
+    const currentStatus = target[statusKey] ?? "Active";
 
-      const currentStatus = target[statusKey] || "Active";
-      const nextStatus =
-        currentStatus === "Active" ? "Inactive" : "Active";
+    const nextStatus =
+      normalizeValue(currentStatus) === "active"
+        ? "Inactive"
+        : "Active";
 
-      if (!(await showStatusConfirmDialog(nextStatus))) {
-        return;
-      }
+    const confirmed = await showStatusConfirmDialog(nextStatus);
 
-      try {
-        showLoadingPopup("Updating status...");
+    if (!confirmed) return;
 
-        const response = await fetch(`${apiEndpoint}/${id}`, {
-          method: "PUT",
+    try {
+      showLoadingPopup("Updating status...");
+
+      const baseUrl = String(apiEndpoint || "").replace(/\/+$/, "");
+
+      const response = await fetch(
+        `${baseUrl}/${encodeURIComponent(id)}/status`,
+        {
+          method: "PATCH",
           headers: getHeaders({
             "Content-Type": "application/json",
           }),
           body: JSON.stringify({
             [statusKey]: nextStatus,
           }),
-        });
-
-        const result = await parseResponse(response);
-
-        if (onFetchItems) {
-          await onFetchItems();
         }
+      );
 
-        showSuccessAlert(
-          result.message || `Status switched to ${nextStatus}.`,
-          1200
-        );
-      } catch (error) {
-        console.error("Status Update Error:", error);
+      const result = await parseResponse(response);
 
-        showErrorAlert(
-          error.message || "Status update failed."
-        );
-      }
-    },
-    [
-      items,
-      primaryKey,
-      statusKey,
-      apiEndpoint,
-      getHeaders,
-      parseResponse,
-      onFetchItems,
-    ]
-  );
+      await refreshItems();
+
+      showSuccessAlert(
+        result.message || `Status changed to ${nextStatus}.`,
+        1200
+      );
+    } catch (error) {
+      console.error("Status Update Error:", error);
+
+      showErrorAlert(
+        error.message || "Status update failed."
+      );
+    }
+  },
+  [
+    items,
+    primaryKey,
+    statusKey,
+    apiEndpoint,
+    getHeaders,
+    parseResponse,
+    refreshItems,
+  ]
+);
 
   /* =====================================================
-   * TAB COUNTS
+   * TAB COUNTS AND FILTERED DATA
    * =================================================== */
 
   const tabCounts = useMemo(
@@ -453,22 +544,14 @@ export default function FileCrudManager({
     [items, configuredTabs, statusKey]
   );
 
-  /* =====================================================
-   * FILTER RECORDS
-   * =================================================== */
-
   const filteredItems = useMemo(() => {
-    if (configuredTabs.length === 0) {
-      return items;
-    }
+    if (configuredTabs.length === 0) return items;
 
     const selectedTab = configuredTabs.find(
       (tab) => tab.value === activeTab
     );
 
-    if (!selectedTab) {
-      return items;
-    }
+    if (!selectedTab) return items;
 
     return items.filter((item) =>
       matchesTab(item, selectedTab, statusKey)
@@ -508,7 +591,8 @@ export default function FileCrudManager({
                 "bg-violet-600 text-white border-violet-600",
               amber:
                 "bg-amber-500 text-white border-amber-500",
-              slate: "bg-slate-700 text-white border-slate-700",
+              slate:
+                "bg-slate-700 text-white border-slate-700",
             };
 
             return (
@@ -546,16 +630,15 @@ export default function FileCrudManager({
           })}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => handleOpenModal()}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
-        >
-          <i className="bi bi-plus-lg text-sm" aria-hidden="true" />
-          <span>Add {title}</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => handleOpenModal()}
+        disabled={isSaving}
+        className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-300"
+      >
+        <i className="bi bi-plus-lg text-sm" aria-hidden="true" />
+        <span>Add {title}</span>
+      </button>
     </div>
   );
 
@@ -599,7 +682,8 @@ export default function FileCrudManager({
         emptyMessage="No records found"
       />
 
-      {FormComponent && (
+      {/* Add / Edit Form */}
+      {FormComponent && isModalOpen && !isViewMode && (
         <FormComponent
           isOpen={isModalOpen}
           onClose={handleCloseModal}
@@ -609,7 +693,22 @@ export default function FileCrudManager({
           setFormData={setFormData}
           onSubmit={handleSave}
           isLoading={isSaving}
-          modalSize={modalSize}
+          modalSize={FormmodalSize}
+        />
+      )}
+
+      {/* Employee View */}
+      {ViewComponent && isModalOpen && isViewMode && (
+        <ViewComponent
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          title={title}
+          employee={currentItem}
+          item={currentItem}
+          data={currentItem}
+          currentItem={currentItem}
+          formData={formData}
+          modalSize={ViewmodalSize}
         />
       )}
     </div>

@@ -47,6 +47,15 @@ const USER_TABS = [
     defaultStatus: "Inactive",
     icon: "bi bi-pause-circle",
   },
+  {
+    label: "Deleted",
+    value: "Deleted",
+    filterKey: "ud_status",
+    filterValue: "Deleted",
+    color: "rose",
+    defaultStatus: "Deleted",
+    icon: "bi bi-pause-circle",
+  },
 ];
 
 export default function UserDetailsContent() {
@@ -220,10 +229,10 @@ export default function UserDetailsContent() {
         emptyForm={EMPTY_FORM}
         columns={getColumns}
         FormComponent={UserDetailsForm}
+        FormmodalSize="4xl"
         items={items}
         loading={loading}
         onFetchItems={fetchItems}
-        modalSize="4xl"
         tabs={USER_TABS}
         defaultTab="Active"
         showTabCounts

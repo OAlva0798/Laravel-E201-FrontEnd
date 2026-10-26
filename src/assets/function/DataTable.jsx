@@ -215,16 +215,6 @@ export default function DataTable({
             : "There are currently no records available to display."}
         </p>
 
-        {hasSearch && (
-          <button
-            type="button"
-            onClick={() => setSearchQuery("")}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3.5 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 active:scale-95"
-          >
-            <i className="bi bi-x-circle text-sm" aria-hidden="true" />
-            Clear search filter
-          </button>
-        )}
       </div>
     );
   };

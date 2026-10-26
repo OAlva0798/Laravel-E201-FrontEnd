@@ -102,30 +102,49 @@ export function StatusBadge({
   );
 }
 
-/* ---------- Edit / Delete buttons ---------- */
-export function ActionButtons({ onEdit, onDelete }) {
+export function ActionButtons({
+  onView,
+  onEdit,
+  onDelete,
+}) {
   return (
     <div className="flex items-center justify-center gap-2">
+      {onView && (
+        <button
+          type="button"
+          onClick={onView}
+          title="View employee"
+          aria-label="View employee"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500 bg-transparent text-blue-600 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        >
+          <i className="bi bi-eye" aria-hidden="true" />
+        </button>
+      )}
+
       {onEdit && (
         <button
           type="button"
           onClick={onEdit}
-          title="Edit"
-          aria-label="Edit"
-          className="p-2 text-blue-600 transition hover:bg-blue-100"
+          title="Edit employee"
+          aria-label="Edit employee"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500 bg-transparent text-emerald-600 transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-200"
         >
-          <i className="bi bi-pencil-square text-sm" />
+          <i
+            className="bi bi-pencil-square"
+            aria-hidden="true"
+          />
         </button>
       )}
+
       {onDelete && (
         <button
           type="button"
           onClick={onDelete}
-          title="Delete"
-          aria-label="Delete"
-          className="p-2 text-rose-600 transition hover:bg-rose-100"
+          title="Delete employee"
+          aria-label="Delete employee"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500 bg-transparent text-rose-600 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-200"
         >
-          <i className="bi bi-trash text-sm" />
+          <i className="bi bi-trash" aria-hidden="true" />
         </button>
       )}
     </div>
