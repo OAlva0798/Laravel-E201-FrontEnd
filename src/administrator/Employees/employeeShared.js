@@ -68,11 +68,19 @@ export const getTodayLocal = () => {
 
 /* ---------- one fetch wrapper for everything ---------- */
 export async function apiRequest(path, options = {}, signal) {
-  const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+  let url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+
+  // Cache-buster for plain GETs so no browser/proxy layer can return old data.
+  const method = String(options.method || "GET").toUpperCase();
+  if (method === "GET" && !options.raw) {
+    url += `${url.includes("?") ? "&" : "?"}_ts=${Date.now()}`;
+  }
   const token = getAuthToken();
   const isForm = options.body instanceof FormData;
 
   const response = await fetch(url, {
+    // Never let the browser serve a cached GET: edits must show immediately.
+    cache: "no-store",
     ...options,
     signal,
     headers: {
@@ -103,10 +111,14 @@ export async function apiRequest(path, options = {}, signal) {
 
 /* ---------- cached + de-duplicated org lookups ---------- */
 const orgCache = new Map(); // key -> Promise<list>
+const orgCachedAt = new Map(); // key -> timestamp
+const ORG_CACHE_TTL = 60 * 1000; // renamed companies/departments show up within a minute
 
 export function loadOrgList(key, { force = false, signal } = {}) {
-  if (force) orgCache.delete(key);
+  const expired = Date.now() - (orgCachedAt.get(key) || 0) > ORG_CACHE_TTL;
+  if (force || expired) orgCache.delete(key);
   if (!orgCache.has(key)) {
+    orgCachedAt.set(key, Date.now());
     const promise = apiRequest(ORG[key].endpoint, {}, signal)
       .then(extractList)
       .catch((e) => {
@@ -118,7 +130,10 @@ export function loadOrgList(key, { force = false, signal } = {}) {
   return orgCache.get(key);
 }
 
-export const clearOrgCache = () => orgCache.clear();
+export const clearOrgCache = () => {
+  orgCache.clear();
+  orgCachedAt.clear();
+};
 
 /** Build Map(reference -> name) once instead of Array.find on every field render. */
 export function buildNameMap(list, key) {

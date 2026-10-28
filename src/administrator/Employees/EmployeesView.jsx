@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo, memo } from "react";
+import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 
 import Modal from "../../assets/function/Modal";
 import { API_BASE_URL } from "../../assets/js/appConfig";
 import E201TabContent from "./E201TabContent";
 import EmployeeMovementHistory from "./EmployeeMovementHistory";
 import {
+  apiRequest,
+  extractList,
   ORG,
   normalize,
   getFullName,
@@ -18,6 +20,7 @@ import { SectionHeader } from "./employeeUi";
  * 1. CONFIGURATION
  * ======================================================= */
 const NOT_PROVIDED = "Not provided";
+const EMPTY_RECORD = {};
 const ORG_KEYS = Object.keys(ORG);
 const EMPTY_ORGS = Object.fromEntries(ORG_KEYS.map((k) => [k, []]));
 
@@ -143,7 +146,11 @@ function getProfileUrl(record) {
   }
 
   const base = String(API_BASE_URL || window.location.origin).replace(/\/api\/?$/, "").replace(/\/+$/, "");
-  return `${base}/${value.replace(/\\/g, "/").replace(/^\/+/, "")}`;
+  const url = `${base}/${value.replace(/\\/g, "/").replace(/^\/+/, "")}`;
+
+  // Same filename after re-upload => browser shows the old photo. Bust the cache.
+  const version = record?.updated_at || record?.ee_updated_at;
+  return version ? `${url}${url.includes("?") ? "&" : "?"}v=${encodeURIComponent(version)}` : url;
 }
 
 /* =========================================================
@@ -320,7 +327,7 @@ const CardSection = memo(function CardSection({ section, record, resolveOrg }) {
 /* =========================================================
  * 5. PROFILE LAYOUT
  * ======================================================= */
-function ProfileLayout({ record, fullName, profileUrl, resolveOrg, organizationLoading, organizationError }) {
+function ProfileLayout({ record, fullName, profileUrl, resolveOrg, organizationLoading, organizationError, onRecordChanged }) {
   const [activeTab, setActiveTab] = useState(TABS_CONFIG[0].id);
   const [imageFailed, setImageFailed] = useState(false);
 
@@ -350,12 +357,12 @@ function ProfileLayout({ record, fullName, profileUrl, resolveOrg, organizationL
         {/* ---------- Profile card ---------- */}
         <aside className="min-w-0 lg:col-span-3 lg:min-h-0">
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 text-left sm:gap-4 lg:flex-col lg:bg-transparent lg:p-4 lg:text-center">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-indigo-50 text-lg font-bold text-indigo-600 shadow ring-1 ring-slate-200 sm:h-20 sm:w-20 sm:text-xl lg:h-50 lg:w-50 lg:rounded-2xl lg:border-4 lg:text-2xl">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl text-lg font-bold text-indigo-600 shadow ring-1 ring-slate-200 sm:h-20 sm:w-20 sm:text-xl lg:h-50 lg:w-50 lg:rounded-2xl lg:text-2xl">
               {profileUrl && !imageFailed ? (
                 <img
                   src={profileUrl}
                   alt={`${fullName} profile`}
-                  className="h-full w-full object-cover"
+                  className="h-full object-cover"
                   onError={() => setImageFailed(true)}
                 />
               ) : (
@@ -369,6 +376,9 @@ function ProfileLayout({ record, fullName, profileUrl, resolveOrg, organizationL
               </h2>
               <p className="mt-0.5 truncate text-xs text-slate-500 sm:text-sm lg:whitespace-normal">
                 {positionName !== NOT_PROVIDED ? positionName : record.ee_job_family || "Employee"}
+              </p>
+              <p className="mt-0.5 truncate text-xs text-slate-500 sm:text-sm lg:whitespace-normal">
+                {record.ee_id_number }
               </p>
 
               <div className="mt-1.5 flex flex-wrap gap-1.5 lg:justify-center">
@@ -424,7 +434,7 @@ function ProfileLayout({ record, fullName, profileUrl, resolveOrg, organizationL
             className="space-y-3 pb-3 focus:outline-none lg:min-h-0 lg:flex-1 lg:space-y-4 lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain lg:pr-2"
           >
             {tab.kind === "history" ? (
-              <EmployeeMovementHistory employeeIdNumber={record.ee_id_number} />
+              <EmployeeMovementHistory employeeIdNumber={record.ee_id_number} onChanged={onRecordChanged} />
             ) : tab.kind === "e201" ? (
               <E201TabContent employee={record} />
             ) : (
@@ -449,10 +459,48 @@ export default function EmployeesView({
   data,
   currentItem,
   onClose,
+  onRefresh,
   title = "Employee Profile",
   modalSize = "6xl",
 }) {
-  const record = employee || item || data || currentItem || {};
+  const baseRecord = employee || item || data || currentItem || EMPTY_RECORD;
+  const idNumber = normalize(baseRecord.ee_id_number);
+
+  // Newest copy of this employee, fetched straight from the API.
+  const [freshRecord, setFreshRecord] = useState(null);
+
+  const reloadRecord = useCallback(async () => {
+    if (!idNumber) return;
+
+    try {
+      const res = await apiRequest(`/employees?${new URLSearchParams({ ee_id_number: idNumber })}`);
+      const match = extractList(res).find((e) => normalize(e?.ee_id_number) === idNumber);
+      if (match) setFreshRecord(match);
+    } catch (error) {
+      console.error("Unable to refresh employee details:", error);
+    }
+  }, [idNumber]);
+
+  // Fetch the latest details every time the profile opens.
+  useEffect(() => {
+    if (!isOpen) return;
+    setFreshRecord(null);
+    reloadRecord();
+  }, [isOpen, reloadRecord]);
+
+  // Whenever the list supplies a newer row, prefer it over our older fetch.
+  useEffect(() => setFreshRecord(null), [baseRecord]);
+
+  // Called by the movement history after add / update / delete.
+  const handleRecordChanged = useCallback(async () => {
+    await reloadRecord();   // refresh these profile details
+    onRefresh?.();          // refresh the employees table behind the modal
+  }, [reloadRecord, onRefresh]);
+
+  const record = useMemo(
+    () => (freshRecord ? { ...baseRecord, ...freshRecord } : baseRecord),
+    [baseRecord, freshRecord],
+  );
 
   const fullName = getFullName(record, "Employee Profile");
   const profileUrl = useMemo(() => getProfileUrl(record), [record]);
@@ -468,6 +516,7 @@ export default function EmployeesView({
           resolveOrg={resolveOrg}
           organizationLoading={organizationLoading}
           organizationError={organizationError}
+          onRecordChanged={handleRecordChanged}
         />
       </div>
     </Modal>

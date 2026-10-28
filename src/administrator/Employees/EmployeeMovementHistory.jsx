@@ -35,6 +35,7 @@ const EMPLOYEES = "/employees";
 const LEGACY_DATE_COLUMN = "eemh_date_effective";
 
 const SPAN = {
+  3: "col-span-12 sm:col-span-3",
   4: "col-span-12 sm:col-span-4",
   6: "col-span-12 sm:col-span-6",
   12: "col-span-12",
@@ -57,6 +58,7 @@ const FIELDS = [
   { name: "eemh_date_effective", apiName: LEGACY_DATE_COLUMN, label: "Effective Date", type: "date", span: 3, required: true },
   { name: "eemh_employment_status", label: "Employment Status", type: "select", span: 3, required: true, employeeKey: "ee_employment_status", options: EMPLOYMENT_STATUSES },
   { name: "eemh_job_family", label: "Job Family", type: "select", span: 3, employeeKey: "ee_job_family", options: JOB_FAMILIES },
+  { name: "eemh_remarks", label: "Remarks", type: "textarea", span: 12, maxLength: 500 },
 ];
 
 const SECTIONS = [
@@ -72,7 +74,7 @@ const SECTIONS = [
     title: "When and what status",
     description: "The date this assignment starts and the employee's status.",
     icon: "bi-calendar-check",
-    fields: ["eemh_date_effective", "eemh_employment_status", "eemh_job_family"],
+    fields: ["eemh_date_effective", "eemh_employment_status", "eemh_job_family", "eemh_remarks"],
   },
 ];
 
@@ -133,6 +135,7 @@ const validateField = (field, val) => {
   const v = normalize(val);
   if (field.required && !v) return `${field.label} is required`;
   if (field.type === "date" && v && !/^(\d{4})-(\d{2})-(\d{2})$/.test(v)) return "Enter a valid date";
+  if (field.maxLength && String(val ?? "").length > field.maxLength) return `${field.label} must be ${field.maxLength} characters or fewer`;
   return "";
 };
 
@@ -207,7 +210,7 @@ function useRemoteOptions(enabled) {
 /* ==========================================================================
    4. MAIN COMPONENT
    ========================================================================== */
-export default function EmployeeMovementHistory({ employeeIdNumber = "" }) {
+export default function EmployeeMovementHistory({ employeeIdNumber = "", onChanged }) {
   const [movements, setMovements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pageError, setPageError] = useState("");
@@ -244,6 +247,12 @@ export default function EmployeeMovementHistory({ employeeIdNumber = "" }) {
   }, [employeeIdNumber]);
 
   useEffect(() => { loadMovements(); }, [loadMovements]);
+
+  // Tell the parent (employee profile) that a movement was added/updated/deleted,
+  // so it can re-fetch the employee details. Never let this break the save flow.
+  const notifyChanged = useCallback(async () => {
+    try { await onChanged?.(); } catch (e) { console.error("Employee refresh failed:", e); }
+  }, [onChanged]);
 
   // --- Derived States ---
   const today = getTodayLocal();
@@ -350,6 +359,7 @@ export default function EmployeeMovementHistory({ employeeIdNumber = "" }) {
       });
       setModal({ open: false, item: null });
       await loadMovements();
+      await notifyChanged();
       showSuccessAlert(id ? "Changes saved" : "Movement added", id ? "The movement was updated." : "The movement is now in the timeline.");
     } catch (err) {
       Swal.close(); // don't leave the loading popup covering the error
@@ -370,15 +380,16 @@ export default function EmployeeMovementHistory({ employeeIdNumber = "" }) {
       showLoadingPopup("Deleting...");
       await apiRequest(`${MOVEMENTS}/${encodeURIComponent(id)}`, { method: "DELETE" });
       await loadMovements();
+      await notifyChanged();
       showSuccessAlert("Movement deleted", "The record was removed from the timeline.");
     } catch (e) {
       Swal.close();
       showErrorAlert("Couldn't delete", getErrorMessage(e, "Try again in a moment."));
     }
-  }, [nameOf, loadMovements]);
+  }, [nameOf, loadMovements, notifyChanged]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 pb-8">
       {/* ---- Summary + actions ---- */}
       <div className="sticky top-0 z-20 -mx-1 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-white/95 px-1 py-2 backdrop-blur">
         <div className="min-w-0">
@@ -636,6 +647,17 @@ const MovementEntry = memo(function MovementEntry({
                 />
               ))}
             </div>
+
+            {!isBlank(movement?.eemh_remarks?.trim?.()) && (
+              <div className="mt-2 border-t border-slate-100 pt-2">
+                <p className="text-[14px] font-medium text-slate-500">
+                  <i className="bi bi-chat-left-text mr-1.5 text-xs text-slate-400" aria-hidden="true" />Remarks
+                </p>
+                <p className="mt-0.5 whitespace-pre-wrap break-words text-[12px] font-semibold text-slate-800">
+                  {movement.eemh_remarks}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </article>
@@ -662,6 +684,19 @@ const Field = memo(function Field({ field, value, error, hint, options, optionsL
           onChange={(e) => onChange(field.name, e.target.value)} onBlur={() => onBlur(field.name)}
           className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:ring-2 disabled:opacity-60 ${error ? "border-rose-300 focus:ring-rose-200" : "border-slate-200 focus:ring-indigo-500"}`}
         />
+      ) : field.type === "textarea" ? (
+        <>
+          <textarea
+            id={id} name={field.name} value={value} disabled={disabled} rows={3}
+            maxLength={field.maxLength} aria-invalid={Boolean(error)} aria-describedby={noteId}
+            placeholder="Reason for the movement, notes, etc. (optional)"
+            onChange={(e) => onChange(field.name, e.target.value)} onBlur={() => onBlur(field.name)}
+            className={`w-full resize-y rounded-lg border bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:ring-2 disabled:opacity-60 ${error ? "border-rose-300 focus:ring-rose-200" : "border-slate-200 focus:ring-indigo-500"}`}
+          />
+          {field.maxLength && (
+            <p className="mt-1 text-right text-[11px] text-slate-400">{String(value).length}/{field.maxLength}</p>
+          )}
+        </>
       ) : (
         <SearchableSelect
           id={id} name={field.name} options={options}

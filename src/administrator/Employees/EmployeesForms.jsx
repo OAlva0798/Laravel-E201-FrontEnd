@@ -127,7 +127,7 @@ const SECTIONS = [
     icon: "bi-telephone",
     fields: [
       input("ee_email", "Email Address", 4, {
-        inputType: "email", required: true, placeholder: "user@example.com",
+        inputType: "email", required: false, placeholder: "user@example.com",
       }),
       input("ee_mobile_number", "Mobile Number", 4, {
         inputType: "tel", required: true, placeholder: "Enter mobile number",
@@ -183,7 +183,7 @@ const SECTIONS = [
         inputType: "date", showWhen: ["Contractual"], requiredWhen: ["Contractual"],
       }),
       input("ee_date_contractual_end", "Contract End Date", 4, {
-        inputType: "date", showWhen: ["Contractual"], requiredWhen: ["Contractual"],
+        inputType: "date", showWhen: ["Contractual"],
         helpText: "Must be on or after the contract start date.",
       }),
       input("ee_date_resigned", "Date Resigned", 4, {
