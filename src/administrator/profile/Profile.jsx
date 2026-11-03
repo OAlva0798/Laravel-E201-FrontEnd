@@ -1,3 +1,4 @@
+import { getToken as readToken } from "../../lib/auth";
 
 import React, {
   useCallback,
@@ -67,8 +68,7 @@ const EMPTY_SECURITY_FORM = {
 const normalize = (value) => String(value ?? "").trim();
 
 const getToken = () =>
-  localStorage.getItem("access_token") ||
-  sessionStorage.getItem("access_token") ||
+  readToken() ||
   "";
 
 const getFileUrl = (value) => {
@@ -260,7 +260,7 @@ function TextField({
           maxLength={maxLength}
           readOnly={readOnly}
           autoComplete="off"
-          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm transition-all focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 ${
+          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm transition-all focus:border-input-focus focus:outline-none focus:ring-4 focus:ring-input-ring ${
             icon ? "pl-10" : ""
           } ${
             readOnly
@@ -297,7 +297,7 @@ function PasswordInput({
         onChange={onChange}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-11 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10"
+        className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-11 text-sm text-slate-800 placeholder:text-slate-400 focus:border-input-focus focus:outline-none focus:ring-4 focus:ring-input-ring"
       />
 
       <button

@@ -1,7 +1,7 @@
+import { useOrgData } from "../../../data/OrgDataContext";
 import React, { useEffect, useState, useCallback } from "react";
 import Modal from "../../../assets/function/Modal";
 import SearchableSelect from "../../../assets/function/SearchableSelect";
-import { API_BASE_URL } from "../../../assets/js/appConfig";
 
 const formFields = (centers, loadingCenters) => [
   {
@@ -46,8 +46,9 @@ export default function DepartmentForm({
   const [errorAlert, setErrorAlert] = useState(null);
 
   // FIXED: Added missing states for centers and loading state
-  const [centers, setCenters] = useState([]);
-  const [loadingCenters, setLoadingCenters] = useState(false);
+  const { center } = useOrgData("center", { enabled: isOpen });
+  const centers = center.list;
+  const loadingCenters = center.loading;
 
   // Generate dynamic fields with current center states
   const fields = formFields(centers, loadingCenters);
@@ -92,26 +93,6 @@ export default function DepartmentForm({
     setErrorAlert(null);
   }, [isOpen, currentItem, setFormData]);
 
-  // Fetch active dropdown relations on open
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const fetchDropdownData = async (endpoint, setter, loader) => {
-      loader(true);
-      try {
-        const res = await fetch(`${API_BASE_URL}/${endpoint}`);
-        if (!res.ok) throw new Error();
-        const result = await res.json();
-        setter(Array.isArray(result) ? result : result.data || []);
-      } catch (err) {
-        console.error(`Error fetching ${endpoint}:`, err);
-      } finally {
-        loader(false);
-      }
-    };
-
-    fetchDropdownData("centers/active-centers", setCenters, setLoadingCenters);
-  }, [isOpen]);
 
   return (
     <Modal 
@@ -149,7 +130,7 @@ export default function DepartmentForm({
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     placeholder={field.placeholder}
                     required={field.required}
-                    className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 transition-all"
+                    className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-input-ring focus:border-input-focus bg-slate-50/50 transition-all"
                   />
                 )}
 
@@ -162,7 +143,7 @@ export default function DepartmentForm({
                       {...field.props}
                       value={formData[field.name] || ""}
                       onChange={(value) => handleChange(field.name, value)}
-                      className="w-full text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 transition-all" 
+                      className="w-full text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-input-ring focus:border-input-focus bg-slate-50/50 transition-all" 
                     />
                   );
                 })()}

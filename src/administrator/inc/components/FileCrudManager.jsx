@@ -1,3 +1,4 @@
+import { getToken as readToken } from "../../../lib/auth";
 
 import React, {
   useState,
@@ -151,8 +152,7 @@ const [isViewMode, setIsViewMode] = useState(false);
 
   const getToken = useCallback(
     () =>
-      localStorage.getItem("access_token") ||
-      sessionStorage.getItem("access_token") ||
+      readToken() ||
       "",
     []
   );
@@ -601,7 +601,7 @@ const toggleStatus = useCallback(
                 type="button"
                 onClick={() => setActiveTab(tab.value)}
                 aria-pressed={selected}
-                className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-emerald-300 ${
+                className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-input-ring ${
                   selected
                     ? selectedStyles[tab.color] ||
                       selectedStyles.emerald
@@ -634,7 +634,7 @@ const toggleStatus = useCallback(
         type="button"
         onClick={() => handleOpenModal()}
         disabled={isSaving}
-        className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-input-ring"
       >
         <i className="bi bi-plus-lg text-sm" aria-hidden="true" />
         <span>Add {title}</span>

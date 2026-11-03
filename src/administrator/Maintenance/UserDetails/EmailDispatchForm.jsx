@@ -1,3 +1,4 @@
+import { getToken as readToken } from "../../../lib/auth";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { API_BASE_URL } from "../../../assets/js/appConfig";
@@ -102,8 +103,7 @@ export default function EmailDispatchForm({ isOpen, onClose, endpoint }) {
 
   const getToken = useCallback(
     () =>
-      localStorage.getItem("access_token") ||
-      sessionStorage.getItem("access_token") ||
+      readToken() ||
       "",
     [],
   );

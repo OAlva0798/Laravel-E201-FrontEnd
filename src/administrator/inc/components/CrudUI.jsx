@@ -115,7 +115,7 @@ export function ActionButtons({
           onClick={onView}
           title="View employee"
           aria-label="View employee"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500 bg-transparent text-blue-600 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500 bg-transparent text-blue-600 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-input-ring"
         >
           <i className="bi bi-eye" aria-hidden="true" />
         </button>
@@ -127,7 +127,7 @@ export function ActionButtons({
           onClick={onEdit}
           title="Edit employee"
           aria-label="Edit employee"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500 bg-transparent text-emerald-600 transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500 bg-transparent text-emerald-600 transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-input-ring"
         >
           <i
             className="bi bi-pencil-square"

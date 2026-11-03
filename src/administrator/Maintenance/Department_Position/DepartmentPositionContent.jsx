@@ -1,3 +1,5 @@
+import { themeColor } from "../../../lib/theme";
+import { getToken as readToken } from "../../../lib/auth";
 
 import React, {
   memo,
@@ -52,8 +54,7 @@ const EMPTY_POSITION = {
 /* -------------------------------- Helpers ------------------------------- */
 
 const getToken = () =>
-  localStorage.getItem("access_token") ||
-  sessionStorage.getItem("access_token") ||
+  readToken() ||
   "";
 
 async function apiRequest(url, options = {}) {
@@ -937,7 +938,7 @@ export default function DepartmentPositionContent() {
         confirmButtonText: `Yes, ${nextStatus.toLowerCase()}`,
         cancelButtonText: "Cancel",
         confirmButtonColor:
-          nextStatus === "Active" ? "#059669" : "#e11d48",
+          nextStatus === "Active" ? themeColor("--color-emerald", "#059669") : themeColor("--color-rose", "#e11d48"),
       });
 
       if (!confirmation.isConfirmed) return;

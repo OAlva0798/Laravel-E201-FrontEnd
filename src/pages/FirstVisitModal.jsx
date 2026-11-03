@@ -1,3 +1,4 @@
+import SafeHtml from "../components/SafeHtml";
 import React, { useCallback, useEffect, useState } from "react";
 import { useAppSettings } from "../assets/js/useAppSettings";
 
@@ -109,15 +110,11 @@ export default function FirstVisitModal() {
               {/* Left: Data Privacy */}
               <div className="min-w-0 flex-1">
                 {siteDataPrivacy && (
-                  <div
+                  <SafeHtml
                     className="prose prose-sm max-w-none text-slate-600
                       prose-headings:font-bold prose-headings:text-slate-900
                       prose-p:leading-6 prose-a:text-emerald-700
-                      prose-a:no-underline hover:prose-a:underline"
-                    dangerouslySetInnerHTML={{
-                      __html: siteDataPrivacy,
-                    }}
-                  />
+                      prose-a:no-underline hover:prose-a:underline" html={siteDataPrivacy} />
                 )}
               </div>
 

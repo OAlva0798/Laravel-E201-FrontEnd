@@ -279,7 +279,7 @@ export function FormInput({
       )}
 
       <div className="group relative">
-        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 transition-colors group-focus-within:text-emerald-600">
+        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 transition-colors group-focus-within:text-input-focus">
           <i className={`bi ${icon} text-base`} />
         </span>
 

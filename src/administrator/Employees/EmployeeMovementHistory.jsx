@@ -467,7 +467,7 @@ export default function EmployeeMovementHistory({ employeeIdNumber = "", onChang
                   type="button"
                   onClick={handleLoadEmployee}
                   disabled={!employeeIdNumber || busy}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-200 hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-200 hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-input-ring disabled:opacity-50"
                 >
                   {loadingEmp ? <><Spinner /> Loading...</> : <><i className="bi bi-person-down" /> Use current profile</>}
                 </button>
@@ -588,7 +588,7 @@ const MovementEntry = memo(function MovementEntry({
             onClick={onToggle}
             aria-expanded={open}
             aria-controls={bodyId}
-            className="flex min-w-0 flex-1 items-start gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="flex min-w-0 flex-1 items-start gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-input-ring"
           >
             <i className={`bi bi-chevron-right mt-1 text-xs text-slate-400 transition-transform ${open ? "rotate-90" : ""}`} aria-hidden="true" />
             <div className="min-w-0 flex-1">
@@ -682,7 +682,7 @@ const Field = memo(function Field({ field, value, error, hint, options, optionsL
           id={id} type="date" name={field.name} value={value} disabled={disabled}
           required={field.required} aria-invalid={Boolean(error)} aria-describedby={noteId}
           onChange={(e) => onChange(field.name, e.target.value)} onBlur={() => onBlur(field.name)}
-          className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:ring-2 disabled:opacity-60 ${error ? "border-rose-300 focus:ring-rose-200" : "border-slate-200 focus:ring-indigo-500"}`}
+          className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:ring-2 disabled:opacity-60 ${error ? "border-rose-300 focus:ring-rose-200" : "border-slate-200 focus:ring-input-ring"}`}
         />
       ) : field.type === "textarea" ? (
         <>
@@ -691,7 +691,7 @@ const Field = memo(function Field({ field, value, error, hint, options, optionsL
             maxLength={field.maxLength} aria-invalid={Boolean(error)} aria-describedby={noteId}
             placeholder="Reason for the movement, notes, etc. (optional)"
             onChange={(e) => onChange(field.name, e.target.value)} onBlur={() => onBlur(field.name)}
-            className={`w-full resize-y rounded-lg border bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:ring-2 disabled:opacity-60 ${error ? "border-rose-300 focus:ring-rose-200" : "border-slate-200 focus:ring-indigo-500"}`}
+            className={`w-full resize-y rounded-lg border bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:ring-2 disabled:opacity-60 ${error ? "border-rose-300 focus:ring-rose-200" : "border-slate-200 focus:ring-input-ring"}`}
           />
           {field.maxLength && (
             <p className="mt-1 text-right text-[11px] text-slate-400">{String(value).length}/{field.maxLength}</p>
@@ -778,7 +778,7 @@ function Button({ variant = "primary", small = false, type = "button", className
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 ${small ? "px-2.5 py-1.5 text-xs" : "px-3.5 py-2 text-xs"} ${BUTTON_VARIANTS[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-input-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 ${small ? "px-2.5 py-1.5 text-xs" : "px-3.5 py-2 text-xs"} ${BUTTON_VARIANTS[variant]} ${className}`}
       {...props}
     >
       {children}

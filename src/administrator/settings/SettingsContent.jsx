@@ -1,3 +1,4 @@
+import { getToken as readToken } from "../../lib/auth";
 import React, {
   useCallback,
   useEffect,
@@ -453,7 +454,7 @@ const Section = ({
 // ==========================================================
 
 const FIELD_CLASS =
-  "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-500/10";
+  "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-input-focus focus:bg-white focus:ring-2 focus:ring-input-ring";
 
 // ==========================================================
 // SETTING HEADER
@@ -830,7 +831,7 @@ const QuillInput = ({ item, onChange }) => {
   }, [item.ss_value]);
 
   return (
-    <div className="quill-wrapper overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100">
+    <div className="quill-wrapper overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 focus-within:border-input-focus focus-within:ring-2 focus-within:ring-input-ring">
       <div
         ref={editorRef}
         className="quill-editor min-h-[260px] text-sm text-slate-700"
@@ -858,7 +859,7 @@ const CheckboxInput = ({ item, onChange }) => {
         onChange={(event) =>
           onChange(item.ss_id, event.target.checked)
         }
-        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-input-ring"
       />
 
       <span className="text-xs font-medium text-slate-700">
@@ -1283,7 +1284,7 @@ const DropZone = ({ item, onFileChange, onClear }) => {
             ? `Replace ${label}`
             : `Upload ${label}`
         }
-        className={`relative min-h-[180px] w-full cursor-pointer overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
+        className={`relative min-h-[180px] w-full cursor-pointer overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-input-ring focus-visible:ring-offset-2 ${
           isDragging
             ? "scale-[1.01] border-indigo-500 bg-indigo-50/60 ring-4 ring-indigo-500/10"
             : ss_remove
@@ -1524,8 +1525,7 @@ export default function SettingsContent({
         data = [currentItem];
       } else {
         const token =
-          localStorage.getItem("access_token") ||
-          sessionStorage.getItem("access_token") ||
+          readToken() ||
           "";
 
         const response = await fetch(
@@ -1858,8 +1858,7 @@ export default function SettingsContent({
 
       try {
         const token =
-          localStorage.getItem("access_token") ||
-          sessionStorage.getItem("access_token") ||
+          readToken() ||
           "";
 
         const response = await fetch(

@@ -575,7 +575,7 @@ export default function E201TabContent({ employee, employeeIdNumber }) {
                 placeholder="Search documents..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-7 text-[11px] text-slate-700 placeholder-slate-400 outline-hidden transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 shadow-2xs"
+                className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-7 text-[11px] text-slate-700 placeholder-slate-400 outline-hidden transition focus:border-input-focus focus:ring-2 focus:ring-input-ring shadow-2xs"
               />
               {searchQuery && (
                 <button

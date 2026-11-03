@@ -327,7 +327,7 @@ const QuillInput = ({ item, onChange }) => {
   }, [item.ss_value]);
 
   return (
-    <div className="quill-wrapper overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100">
+    <div className="quill-wrapper overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 focus-within:border-input-focus focus-within:ring-2 focus-within:ring-input-ring">
       <div
         ref={editorRef}
         className="quill-editor min-h-[260px] text-sm text-slate-700"

@@ -223,7 +223,7 @@ export default function Header({
           type="button"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open sidebar menu"
-          className="flex size-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 lg:hidden"
+          className="flex size-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-input-ring focus:ring-offset-2 lg:hidden"
         >
           <i className="bi bi-list text-2xl leading-none" />
         </button>
@@ -264,8 +264,8 @@ export default function Header({
           aria-label="User menu"
           className={`group flex items-center gap-2.5 rounded-xl border p-1.5 transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
             profileIncomplete
-              ? "border-amber-300 bg-amber-50/80 hover:bg-amber-100/80 focus:ring-amber-500"
-              : "border-transparent hover:border-gray-200 hover:bg-gray-50 focus:ring-indigo-500"
+              ? "border-amber-300 bg-amber-50/80 hover:bg-amber-100/80 focus:ring-input-ring"
+              : "border-transparent hover:border-gray-200 hover:bg-gray-50 focus:ring-input-ring"
           }`}
         >
           {/* Avatar */}

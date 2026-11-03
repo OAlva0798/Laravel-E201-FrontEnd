@@ -1,3 +1,5 @@
+import { BACKUP_API_URL } from "../../config/site.config";
+import { getToken } from "../../lib/auth";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   showLoadingPopup,
@@ -24,7 +26,7 @@ export default function Backup() {
   useEffect(() => {
     const loadTables = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/tables");
+        const response = await fetch(`${BACKUP_API_URL}/tables`);
         const data = await response.json();
 
         if (!response.ok || !data.success || !Array.isArray(data.tables)) {
@@ -108,11 +110,9 @@ export default function Backup() {
     showLoadingPopup("Creating Database Backup...");
 
     try {
-      const response = await fetch("http://localhost:5000/api/mysql", {
+      const response = await fetch(`${BACKUP_API_URL}/mysql`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({
           exportScope,
           tables: selectedTables,
@@ -151,11 +151,9 @@ export default function Backup() {
     showLoadingPopup("Saving Backup Configuration...");
 
     try {
-      const response = await fetch("http://localhost:5000/api/settings", {
+      const response = await fetch(`${BACKUP_API_URL}/settings`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({
           autoBackup,
           frequency: backupFrequency,
@@ -366,7 +364,7 @@ export default function Backup() {
                 onChange={(event) =>
                   setTableSearchQuery(event.target.value)
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs outline-none transition focus:border-blue-500 sm:w-48"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs outline-none transition focus:border-input-focus sm:w-48"
               />
 
               {/* Select / Clear */}

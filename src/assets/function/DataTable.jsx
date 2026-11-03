@@ -237,7 +237,7 @@ export default function DataTable({
               value={rowsPerPage}
               onChange={(e) => setRowsPerPage(Number(e.target.value))}
               aria-label="Rows per page"
-              className="cursor-pointer rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10"
+              className="cursor-pointer rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 outline-none transition focus:border-input-focus focus:ring-2 focus:ring-input-ring"
             >
               {rowsPerPageOptions.map((option) => (
                 <option key={option} value={option}>
@@ -267,7 +267,7 @@ export default function DataTable({
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={searchPlaceholder}
             aria-label="Search records"
-            className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-8 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10"
+            className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-8 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-input-focus focus:ring-2 focus:ring-input-ring"
           />
 
           {searchQuery && (

@@ -1,3 +1,4 @@
+import { getToken as readToken } from "../../lib/auth";
 // src/pages/employees/employeeShared.js
 import { API_BASE_URL } from "../../assets/js/appConfig";
 
@@ -12,14 +13,9 @@ export const JOB_FAMILIES = [
   "Operational Leader", "Executive", "Academic", "Medical",
 ];
 
-// Single source of truth for org lookups (was REMOTE_SELECTS, ORGANIZATION_CONFIG, FIELDS.remote)
-export const ORG = {
-  company:       { endpoint: "/company/active-company",              labelKey: "mco_name", valueKey: "mco_reference" },
-  center:        { endpoint: "/centers/active-centers",              labelKey: "mc_name",  valueKey: "mc_reference" },
-  department:    { endpoint: "/departments/active-departments",      labelKey: "md_name",  valueKey: "md_reference" },
-  position:      { endpoint: "/positions/active-positions",          labelKey: "mp_name",  valueKey: "mp_reference" },
-  positionLevel: { endpoint: "/positionLevel/active-position_level", labelKey: "mpl_name", valueKey: "mpl_reference" },
-};
+// Single source of truth now lives in src/data/OrgDataContext.jsx
+import { ORG, orgStore } from "../../data/OrgDataContext";
+export { ORG };
 
 export const firstDefined = (...v) =>
   v.find((x) => x !== undefined && x !== null && x !== "") ?? "";
@@ -34,7 +30,7 @@ export const positionDepartmentRef = (p) =>
 export const normalize = (v) => (v == null ? "" : String(v).trim());
 
 export const getAuthToken = () =>
-  localStorage.getItem("access_token") || sessionStorage.getItem("access_token") || "";
+  readToken() || "";
 
 export const extractList = (r) =>
   [r, r?.data, r?.data?.data, r?.employees, r?.data?.employees, r?.records, r?.employee_movements]
@@ -109,31 +105,9 @@ export async function apiRequest(path, options = {}, signal) {
   return result;
 }
 
-/* ---------- cached + de-duplicated org lookups ---------- */
-const orgCache = new Map(); // key -> Promise<list>
-const orgCachedAt = new Map(); // key -> timestamp
-const ORG_CACHE_TTL = 60 * 1000; // renamed companies/departments show up within a minute
-
-export function loadOrgList(key, { force = false, signal } = {}) {
-  const expired = Date.now() - (orgCachedAt.get(key) || 0) > ORG_CACHE_TTL;
-  if (force || expired) orgCache.delete(key);
-  if (!orgCache.has(key)) {
-    orgCachedAt.set(key, Date.now());
-    const promise = apiRequest(ORG[key].endpoint, {}, signal)
-      .then(extractList)
-      .catch((e) => {
-        orgCache.delete(key); // never cache failures
-        throw e;
-      });
-    orgCache.set(key, promise);
-  }
-  return orgCache.get(key);
-}
-
-export const clearOrgCache = () => {
-  orgCache.clear();
-  orgCachedAt.clear();
-};
+/* ---------- org lookups now come from the one shared store (src/data) ---------- */
+export const loadOrgList = (key, { force = false } = {}) => orgStore.fetchList(key, { force });
+export const clearOrgCache = () => orgStore.reset();
 
 /** Build Map(reference -> name) once instead of Array.find on every field render. */
 export function buildNameMap(list, key) {

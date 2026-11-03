@@ -169,18 +169,18 @@ export default function Sidebar({
         onClick={() => navigateTo(item.key)}
         className={`group relative flex min-h-[40px] w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 ${
           active
-            ? "bg-indigo-50 font-semibold text-indigo-700 shadow-sm"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            ? "bg-nav-active-bg font-semibold text-nav-active-text shadow-sm"
+            : "text-nav-text hover:bg-nav-hover-bg hover:text-heading"
         }`}
       >
         {active && (
-          <span className="absolute inset-y-1.5 left-0 w-1 rounded-r-full bg-indigo-600" />
+          <span className="absolute inset-y-1.5 left-0 w-1 rounded-r-full bg-nav-indicator" />
         )}
 
         <span
           className={`flex size-5 shrink-0 items-center justify-center transition-colors ${
             active
-              ? "text-indigo-600"
+              ? "text-nav-active-text"
               : "text-slate-400 group-hover:text-slate-600"
           }`}
         >

@@ -1,3 +1,4 @@
+import { ORG } from "../../data/OrgDataContext";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import FileCrudManager from "./../inc/components/FileCrudManager";
 import { CrudHeader, StatusBadge, ActionButtons } from "./../inc/components/CrudUI";
@@ -5,7 +6,7 @@ import EmployeesForm from "./EmployeesForms";
 import EmployeesView from "./EmployeesView";
 import { API_BASE_URL } from "./../../assets/js/appConfig";
 import { showErrorAlert } from "./../../assets/js/swalHelpers";
-import { apiRequest, extractList, getFullName } from "./employeeShared";
+import { apiRequest, extractList, getFullName, loadOrgList } from "./employeeShared";
 
 /* ============================================================================
    1. EDITABLE CONFIGURATIONS (Tabs, Groups, Endpoints & Forms)
@@ -34,14 +35,6 @@ const TAB_DEFS = [
   { value: "Shipboard", group: "employment", test: (r) => isValue(r.ee_employment_status, "shipboard"), defaultStatus: "Active", jumpOnSave: false, color: "indigo", icon: "bi bi-water" },
   { value: "Resigned", group: "employment", test: (r) => isValue(r.ee_employment_status, "resigned"), defaultStatus: "Active", jumpOnSave: false, color: "rose", icon: "bi bi-person-dash" },
 ];
-
-export const ORG = {
-  company:       { endpoint: "/company/active-company",              labelKey: "mco_name", valueKey: "mco_reference" },
-  center:        { endpoint: "/centers/active-centers",              labelKey: "mc_name",  valueKey: "mc_reference" },
-  department:    { endpoint: "/departments/active-departments",      labelKey: "md_name",  valueKey: "md_reference" },
-  position:      { endpoint: "/positions/active-positions",          labelKey: "mp_name",  valueKey: "mp_reference" },
-  positionLevel: { endpoint: "/positionLevel/active-position_level", labelKey: "mpl_name", valueKey: "mpl_reference" },
-};
 
 const NAME_FIELDS = [
   ["ee_company_reference", "company", "company_name"],
@@ -103,8 +96,8 @@ async function mapWithLimit(list, limit, fn) {
 async function fetchOrgLookups(signal) {
   const entries = await Promise.all(Object.entries(ORG).map(async ([key, cfg]) => {
     try {
-      const res = await apiRequest(cfg.endpoint, {}, signal);
-      return [key, new Map(extractList(res).map((r) => [String(r[cfg.valueKey]), r[cfg.labelKey]]))];
+      const list = await loadOrgList(key); // shared cache: no duplicate requests
+      return [key, new Map(list.map((r) => [String(r[cfg.valueKey]), r[cfg.labelKey]]))];
     } catch (err) {
       if (isAbort(err)) throw err;
       return [key, new Map()];

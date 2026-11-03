@@ -1,0 +1,103 @@
+/* ==========================================================================
+   Styles that USE the roles from theme.css. Colors live in theme.css, not here.
+   Safe by design: element rules use :where() so any class on an element wins.
+   ========================================================================== */
+
+@layer base {
+  :root { color-scheme: light; }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-body);                 /* paragraphs inherit this */
+  }
+
+  /* Headings without their own text color class */
+  :where(h1, h2, h3, h4, h5, h6):not([class*="text-"]) { color: var(--color-heading); }
+
+  /* Plain links (links with a class keep their own look) */
+  :where(a:not([class])) { color: var(--color-link); }
+  :where(a:not([class])):hover { color: var(--color-link-hover); }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-blue) 25%, transparent);
+    color: var(--color-heading);
+  }
+
+  /* Form controls: text/placeholder/caret/disabled only (no borders or padding,
+     so inputs that sit inside custom wrappers keep their layout). */
+  :where(input, select, textarea) {
+    color: var(--color-input-text);
+    caret-color: var(--color-input-focus);
+  }
+  :where(input, textarea)::placeholder { color: var(--color-input-placeholder); opacity: 1; }
+  :where(input, select, textarea):disabled { cursor: not-allowed; }
+  :where(input[type="checkbox"], input[type="radio"], input[type="range"], progress) {
+    accent-color: var(--color-btn-primary);
+  }
+  :where(button, [role="button"], a):focus-visible {
+    outline: 2px solid var(--color-input-focus);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* ---------- Buttons:  <button class="btn btn-primary"> ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    border: 1px solid transparent; border-radius: .75rem;
+    padding: .625rem 1.1rem; font-size: .8125rem; font-weight: 600; line-height: 1.25;
+    cursor: pointer; transition: background-color .15s, border-color .15s, color .15s, transform .1s, box-shadow .15s;
+  }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--color-focus-ring); }
+  .btn:active:not(:disabled) { transform: scale(.98); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-sm { padding: .4rem .75rem; font-size: .75rem; border-radius: .6rem; }
+
+  .btn-primary   { background: var(--color-btn-primary); color: var(--color-btn-primary-text); }
+  .btn-primary:hover:not(:disabled)   { background: var(--color-btn-primary-hover); }
+
+  .btn-secondary { background: var(--color-surface); color: var(--color-btn-secondary-text); border-color: var(--color-btn-secondary-border); }
+  .btn-secondary:hover:not(:disabled) { background: var(--color-btn-secondary-hover); }
+
+  .btn-danger    { background: var(--color-btn-danger); color: var(--color-btn-danger-text); }
+  .btn-danger:hover:not(:disabled)    { background: var(--color-btn-danger-hover); }
+
+  .btn-danger-outline { background: var(--color-surface); color: var(--color-btn-danger); border-color: var(--color-status-danger-line); }
+  .btn-danger-outline:hover:not(:disabled) { background: var(--color-status-danger-soft); }
+
+  .btn-accent    { background: var(--color-btn-accent); color: var(--color-btn-accent-text); }
+  .btn-accent:hover:not(:disabled)    { background: var(--color-btn-accent-hover); }
+
+  .btn-ghost     { background: transparent; color: var(--color-btn-secondary-text); }
+  .btn-ghost:hover:not(:disabled)     { background: var(--color-surface-muted); }
+
+  /* ---------- Inputs:  <input class="field"> <select class="field"> <textarea class="field"> ---------- */
+  .field {
+    width: 100%; border-radius: .75rem; border: 1px solid var(--color-input-border);
+    background-color: var(--color-input-bg); color: var(--color-input-text);
+    padding: .625rem .875rem; font-size: .875rem; line-height: 1.35; outline: none;
+    transition: border-color .15s, box-shadow .15s, background-color .15s;
+  }
+  textarea.field { min-height: 6rem; resize: vertical; }
+  .field::placeholder { color: var(--color-input-placeholder); opacity: 1; }
+  .field:focus { border-color: var(--color-input-focus); box-shadow: 0 0 0 4px var(--color-input-ring); }
+  .field:disabled { background-color: var(--color-input-bg-disabled); color: var(--color-disabled); cursor: not-allowed; }
+  .field.is-invalid, .field[aria-invalid="true"] { border-color: var(--color-input-error); }
+  .field.is-invalid:focus, .field[aria-invalid="true"]:focus { box-shadow: 0 0 0 4px var(--color-input-error-ring); }
+
+  .field-label { display: block; margin-bottom: .375rem; font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--color-label); }
+  .field-hint  { margin-top: .375rem; font-size: .75rem; color: var(--color-muted); }
+  .field-error { margin-top: .375rem; font-size: .75rem; color: var(--color-status-danger-text); }
+
+  /* ---------- Badges:  <span class="badge badge-success"> ---------- */
+  .badge { display: inline-flex; align-items: center; gap: .25rem; border: 1px solid; border-radius: 999px; padding: .125rem .625rem; font-size: .6875rem; font-weight: 600; }
+  .badge-success { background: var(--color-status-success-soft); color: var(--color-status-success-text); border-color: var(--color-status-success-line); }
+  .badge-warning { background: var(--color-status-warning-soft); color: var(--color-status-warning-text); border-color: var(--color-status-warning-line); }
+  .badge-danger  { background: var(--color-status-danger-soft);  color: var(--color-status-danger-text);  border-color: var(--color-status-danger-line); }
+  .badge-info    { background: var(--color-status-info-soft);    color: var(--color-status-info-text);    border-color: var(--color-status-info-line); }
+
+  /* ---------- Card & table ---------- */
+  .card { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: 1rem; box-shadow: 0 1px 2px color-mix(in oklab, var(--color-slate) 8%, transparent); }
+  .table-head { background: var(--color-th-bg); color: var(--color-th-text); }
+  .table-row:hover { background: var(--color-row-hover); }
+}

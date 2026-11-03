@@ -1,3 +1,4 @@
+import SafeHtml from "../components/SafeHtml";
 import React from "react";
 
 import {
@@ -125,11 +126,7 @@ export default function Maintenance({
           {maintenanceSubject}
         </p>
         {maintenanceMessage && (
-          <p className="mt-1 text-sm leading-5 text-slate-600"
-            dangerouslySetInnerHTML={{
-                __html: maintenanceMessage,
-              }}
-              />
+          <SafeHtml className="mt-1 text-sm leading-5 text-slate-600" html={maintenanceMessage} />
             )}
       </div>
 

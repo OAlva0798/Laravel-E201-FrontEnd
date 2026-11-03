@@ -1,7 +1,7 @@
+import { useOrgData } from "../../../data/OrgDataContext";
 import React, { useEffect, useState, useCallback } from "react";
 import Modal from "../../../assets/function/Modal";
 import SearchableSelect from "../../../assets/function/SearchableSelect";
-import { API_BASE_URL } from "../../../assets/js/appConfig";
 
 const formFields = (departments, loadingDepartments) => [
   {
@@ -46,8 +46,9 @@ export default function PositionForm({
   const [errorAlert, setErrorAlert] = useState(null);
 
   // FIXED: Added missing states for departments and loading state
-  const [departments, setDepartments] = useState([]);
-  const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const { department } = useOrgData("department", { enabled: isOpen });
+  const departments = department.list;
+  const loadingDepartments = department.loading;
 
   // Generate dynamic fields with current center states
   const fields = formFields(departments, loadingDepartments);
@@ -92,26 +93,6 @@ export default function PositionForm({
     setErrorAlert(null);
   }, [isOpen, currentItem, setFormData]);
 
-  // Fetch active dropdown relations on open
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const fetchDropdownData = async (endpoint, setter, loader) => {
-      loader(true);
-      try {
-        const res = await fetch(`${API_BASE_URL}/${endpoint}`);
-        if (!res.ok) throw new Error();
-        const result = await res.json();
-        setter(Array.isArray(result) ? result : result.data || []);
-      } catch (err) {
-        console.error(`Error fetching ${endpoint}:`, err);
-      } finally {
-        loader(false);
-      }
-    };
-
-    fetchDropdownData("departments/active-departments", setDepartments, setLoadingDepartments);
-  }, [isOpen]);
 
   return (
     <Modal 
@@ -149,7 +130,7 @@ export default function PositionForm({
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     placeholder={field.placeholder}
                     required={field.required}
-                    className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 transition-all"
+                    className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-input-ring focus:border-input-focus bg-slate-50/50 transition-all"
                   />
                 )}
 
@@ -162,7 +143,7 @@ export default function PositionForm({
                       {...field.props}
                       value={formData[field.name] || ""}
                       onChange={(value) => handleChange(field.name, value)}
-                      className="w-full text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 transition-all" 
+                      className="w-full text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-input-ring focus:border-input-focus bg-slate-50/50 transition-all" 
                     />
                   );
                 })()}

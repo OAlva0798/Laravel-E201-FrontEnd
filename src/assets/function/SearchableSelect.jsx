@@ -199,7 +199,7 @@ export default function SearchableSelect({
         onClick={() => {
           if (!disabled) setIsOpen((previous) => !previous);
         }}
-        className={`flex w-full select-none items-center justify-between rounded-xl border px-3 py-2.5 text-xs transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 ${
+        className={`flex w-full select-none items-center justify-between rounded-xl border px-3 py-2.5 text-xs transition-all focus:outline-none focus:ring-2 focus:ring-input-ring ${
           disabled
             ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
             : isOpen
@@ -260,7 +260,7 @@ export default function SearchableSelect({
                   setFocusedIndex(0);
                 }
               }}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-8 text-sm outline-none focus:border-emerald-500"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-8 text-sm outline-none focus:border-input-focus"
             />
 
             {searchQuery && (

@@ -6,6 +6,7 @@ import Header   from "./inc/Header";
 import Dashboard    from "./Dashboard";
 import Profile      from "./profile/Profile";
 
+import { OrgDataProvider } from "../data/OrgDataContext";
 import Employees       from "./Employees/EmployeesContent";
 
 import Company       from "./Maintenance/Company/CompanyContent";
@@ -434,10 +435,12 @@ export default function AdminIndex({
 }) {
   return (
     <SystemProvider>
-      <AdminContent
-        user={user}
-        onLogout={onLogout}
-      />
+      <OrgDataProvider>
+        <AdminContent
+          user={user}
+          onLogout={onLogout}
+        />
+      </OrgDataProvider>
     </SystemProvider>
   );
 }

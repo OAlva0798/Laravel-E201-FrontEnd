@@ -1,3 +1,4 @@
+import { themeColor } from "../../lib/theme";
 import Swal from "sweetalert2";
 
 // ==========================================================
@@ -64,7 +65,7 @@ export const showDeleteConfirmDialog = async () => {
     allowEscapeKey: false,
     showCloseButton: false,
     confirmButtonColor: "#e11d48",
-    cancelButtonColor: "#0f172a",
+    cancelButtonColor: themeColor("--color-slate", "#475569"),
     confirmButtonText: "Yes, delete it!",
     cancelButtonText: "Cancel",
     reverseButtons: true,
@@ -87,7 +88,7 @@ export const showStatusConfirmDialog = async (nextStatus) => {
     allowEscapeKey: false,
     showCloseButton: false,
     confirmButtonColor: "#e11d48",
-    cancelButtonColor: "#0f172a",
+    cancelButtonColor: themeColor("--color-slate", "#475569"),
     confirmButtonText: "Yes, change it!",
     cancelButtonText: "Cancel",
     reverseButtons: true,

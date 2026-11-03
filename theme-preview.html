@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Theme preview</title>
+<style>
+*,*::before,*::after{box-sizing:border-box} body{margin:0;font:15px/1.55 system-ui,sans-serif}
+:root {
+  /* ======================= PART 1: PALETTE ======================= */
+  /* 1. Blue */
+  --color-blue: #2563eb;
+  --color-blue-hover: #1d4ed8;
+  --color-blue-light: #dbeafe;
+  --color-blue-dark: #1e40af;
+
+  /* 2. Emerald */
+  --color-emerald: #059669;
+  --color-emerald-hover: #047857;
+  --color-emerald-light: #d1fae5;
+  --color-emerald-dark: #065f46;
+
+  /* 3. Purple */
+  --color-purple: #7c3aed;
+  --color-purple-hover: #6d28d9;
+  --color-purple-light: #ede9fe;
+  --color-purple-dark: #5b21b6;
+
+  /* 4. Rose */
+  --color-rose: #e11d48;
+  --color-rose-hover: #be123c;
+  --color-rose-light: #ffe4e6;
+  --color-rose-dark: #9f1239;
+
+  /* 5. Amber */
+  --color-amber: #d97706;
+  --color-amber-hover: #b45309;
+  --color-amber-light: #fef3c7;
+  --color-amber-dark: #92400e;
+
+  /* 6. Cyan */
+  --color-cyan: #0891b2;
+  --color-cyan-hover: #0e7490;
+  --color-cyan-light: #cffafe;
+  --color-cyan-dark: #155e75;
+
+  /* 7. Indigo */
+  --color-indigo: #4f46e5;
+  --color-indigo-hover: #4338ca;
+  --color-indigo-light: #e0e7ff;
+  --color-indigo-dark: #3730a3;
+
+  /* 8. Orange */
+  --color-orange: #ea580c;
+  --color-orange-hover: #c2410c;
+  --color-orange-light: #ffedd5;
+  --color-orange-dark: #9a3412;
+
+  /* 9. Teal */
+  --color-teal: #0d9488;
+  --color-teal-hover: #0f766e;
+  --color-teal-light: #ccfbf1;
+  --color-teal-dark: #115e59;
+
+  /* 10. Slate */
+  --color-slate: #475569;
+  --color-slate-hover: #334155;
+  --color-slate-light: #f1f5f9;
+  --color-slate-dark: #1e293b;
+
+  /* ---- shades generated from each color (used by older Tailwind classes) ---- */
+  --color-blue-50: color-mix(in oklab, var(--color-blue-light) 45%, white);
+  --color-blue-100: var(--color-blue-light);
+  --color-blue-200: color-mix(in oklab, var(--color-blue) 20%, var(--color-blue-light));
+  --color-blue-300: color-mix(in oklab, var(--color-blue) 40%, var(--color-blue-light));
+  --color-blue-400: color-mix(in oklab, var(--color-blue) 65%, var(--color-blue-light));
+  --color-blue-500: color-mix(in oklab, var(--color-blue) 88%, var(--color-blue-light));
+  --color-blue-600: var(--color-blue);
+  --color-blue-700: var(--color-blue-hover);
+  --color-blue-800: var(--color-blue-dark);
+  --color-blue-900: color-mix(in oklab, var(--color-blue-dark) 80%, black);
+  --color-blue-950: color-mix(in oklab, var(--color-blue-dark) 55%, black);
+
+  --color-emerald-50: color-mix(in oklab, var(--color-emerald-light) 45%, white);
+  --color-emerald-100: var(--color-emerald-light);
+  --color-emerald-200: color-mix(in oklab, var(--color-emerald) 20%, var(--color-emerald-light));
+  --color-emerald-300: color-mix(in oklab, var(--color-emerald) 40%, var(--color-emerald-light));
+  --color-emerald-400: color-mix(in oklab, var(--color-emerald) 65%, var(--color-emerald-light));
+  --color-emerald-500: color-mix(in oklab, var(--color-emerald) 88%, var(--color-emerald-light));
+  --color-emerald-600: var(--color-emerald);
+  --color-emerald-700: var(--color-emerald-hover);
+  --color-emerald-800: var(--color-emerald-dark);
+  --color-emerald-900: color-mix(in oklab, var(--color-emerald-dark) 80%, black);
+  --color-emerald-950: color-mix(in oklab, var(--color-emerald-dark) 55%, black);
+
+  --color-purple-50: color-mix(in oklab, var(--color-purple-light) 45%, white);
+  --color-purple-100: var(--color-purple-light);
+  --color-purple-200: color-mix(in oklab, var(--color-purple) 20%, var(--color-purple-light));
+  --color-purple-300: color-mix(in oklab, var(--color-purple) 40%, var(--color-purple-light));
+  --color-purple-400: color-mix(in oklab, var(--color-purple) 65%, var(--color-purple-light));
+  --color-purple-500: color-mix(in oklab, var(--color-purple) 88%, var(--color-purple-light));
+  --color-purple-600: var(--color-purple);
+  --color-purple-700: var(--color-purple-hover);
+  --color-purple-800: var(--color-purple-dark);
+  --color-purple-900: color-mix(in oklab, var(--color-purple-dark) 80%, black);
+  --color-purple-950: color-mix(in oklab, var(--color-purple-dark) 55%, black);
+
+  --color-rose-50: color-mix(in oklab, var(--color-rose-light) 45%, white);
+  --color-rose-100: var(--color-rose-light);
+  --color-rose-200: color-mix(in oklab, var(--color-rose) 20%, var(--color-rose-light));
+  --color-rose-300: color-mix(in oklab, var(--color-rose) 40%, var(--color-rose-light));
+  --color-rose-400: color-mix(in oklab, var(--color-rose) 65%, var(--color-rose-light));
+  --color-rose-500: color-mix(in oklab, var(--color-rose) 88%, var(--color-rose-light));
+  --color-rose-600: var(--color-rose);
+  --color-rose-700: var(--color-rose-hover);
+  --color-rose-800: var(--color-rose-dark);
+  --color-rose-900: color-mix(in oklab, var(--color-rose-dark) 80%, black);
+  --color-rose-950: color-mix(in oklab, var(--color-rose-dark) 55%, black);
+
+  --color-amber-50: color-mix(in oklab, var(--color-amber-light) 45%, white);
+  --color-amber-100: var(--color-amber-light);
+  --color-amber-200: color-mix(in oklab, var(--color-amber) 20%, var(--color-amber-light));
+  --color-amber-300: color-mix(in oklab, var(--color-amber) 40%, var(--color-amber-light));
+  --color-amber-400: color-mix(in oklab, var(--color-amber) 65%, var(--color-amber-light));
+  --color-amber-500: color-mix(in oklab, var(--color-amber) 88%, var(--color-amber-light));
+  --color-amber-600: var(--color-amber);
+  --color-amber-700: var(--color-amber-hover);
+  --color-amber-800: var(--color-amber-dark);
+  --color-amber-900: color-mix(in oklab, var(--color-amber-dark) 80%, black);
+  --color-amber-950: color-mix(in oklab, var(--color-amber-dark) 55%, black);
+
+  --color-cyan-50: color-mix(in oklab, var(--color-cyan-light) 45%, white);
+  --color-cyan-100: var(--color-cyan-light);
+  --color-cyan-200: color-mix(in oklab, var(--color-cyan) 20%, var(--color-cyan-light));
+  --color-cyan-300: color-mix(in oklab, var(--color-cyan) 40%, var(--color-cyan-light));
+  --color-cyan-400: color-mix(in oklab, var(--color-cyan) 65%, var(--color-cyan-light));
+  --color-cyan-500: color-mix(in oklab, var(--color-cyan) 88%, var(--color-cyan-light));
+  --color-cyan-600: var(--color-cyan);
+  --color-cyan-700: var(--color-cyan-hover);
+  --color-cyan-800: var(--color-cyan-dark);
+  --color-cyan-900: color-mix(in oklab, var(--color-cyan-dark) 80%, black);
+  --color-cyan-950: color-mix(in oklab, var(--color-cyan-dark) 55%, black);
+
+  --color-indigo-50: color-mix(in oklab, var(--color-indigo-light) 45%, white);
+  --color-indigo-100: var(--color-indigo-light);
+  --color-indigo-200: color-mix(in oklab, var(--color-indigo) 20%, var(--color-indigo-light));
+  --color-indigo-300: color-mix(in oklab, var(--color-indigo) 40%, var(--color-indigo-light));
+  --color-indigo-400: color-mix(in oklab, var(--color-indigo) 65%, var(--color-indigo-light));
+  --color-indigo-500: color-mix(in oklab, var(--color-indigo) 88%, var(--color-indigo-light));
+  --color-indigo-600: var(--color-indigo);
+  --color-indigo-700: var(--color-indigo-hover);
+  --color-indigo-800: var(--color-indigo-dark);
+  --color-indigo-900: color-mix(in oklab, var(--color-indigo-dark) 80%, black);
+  --color-indigo-950: color-mix(in oklab, var(--color-indigo-dark) 55%, black);
+
+  --color-orange-50: color-mix(in oklab, var(--color-orange-light) 45%, white);
+  --color-orange-100: var(--color-orange-light);
+  --color-orange-200: color-mix(in oklab, var(--color-orange) 20%, var(--color-orange-light));
+  --color-orange-300: color-mix(in oklab, var(--color-orange) 40%, var(--color-orange-light));
+  --color-orange-400: color-mix(in oklab, var(--color-orange) 65%, var(--color-orange-light));
+  --color-orange-500: color-mix(in oklab, var(--color-orange) 88%, var(--color-orange-light));
+  --color-orange-600: var(--color-orange);
+  --color-orange-700: var(--color-orange-hover);
+  --color-orange-800: var(--color-orange-dark);
+  --color-orange-900: color-mix(in oklab, var(--color-orange-dark) 80%, black);
+  --color-orange-950: color-mix(in oklab, var(--color-orange-dark) 55%, black);
+
+  --color-teal-50: color-mix(in oklab, var(--color-teal-light) 45%, white);
+  --color-teal-100: var(--color-teal-light);
+  --color-teal-200: color-mix(in oklab, var(--color-teal) 20%, var(--color-teal-light));
+  --color-teal-300: color-mix(in oklab, var(--color-teal) 40%, var(--color-teal-light));
+  --color-teal-400: color-mix(in oklab, var(--color-teal) 65%, var(--color-teal-light));
+  --color-teal-500: color-mix(in oklab, var(--color-teal) 88%, var(--color-teal-light));
+  --color-teal-600: var(--color-teal);
+  --color-teal-700: var(--color-teal-hover);
+  --color-teal-800: var(--color-teal-dark);
+  --color-teal-900: color-mix(in oklab, var(--color-teal-dark) 80%, black);
+  --color-teal-950: color-mix(in oklab, var(--color-teal-dark) 55%, black);
+
+  /* ======================= PART 2: ROLES ======================= */
+
+  /* --- Page & surfaces --- */
+  --color-page:           #ffffff;                                                           /* [bg-page] */
+  --color-surface:        #ffffff;                                                           /* [bg-surface]  cards, modals */
+  --color-surface-subtle: color-mix(in oklab, var(--color-slate-light) 45%, white);          /* [bg-surface-subtle] */
+  --color-surface-muted:  var(--color-slate-light);                                          /* [bg-surface-muted] */
+  --color-line:           color-mix(in oklab, var(--color-slate) 16%, var(--color-slate-light)); /* [border-line] */
+  --color-line-strong:    color-mix(in oklab, var(--color-slate) 32%, var(--color-slate-light)); /* [border-line-strong] */
+
+  /* --- Text --- */
+  --color-heading:    var(--color-slate-dark);                                  /* [text-heading]    h1-h6, titles */
+  --color-subheading: var(--color-slate-dark);                                  /* [text-subheading] section titles */
+  --color-label:      var(--color-slate-hover);                                 /* [text-label]      form labels */
+  --color-body:       var(--color-slate);                                       /* [text-body]       paragraphs */
+  --color-muted:      color-mix(in oklab, var(--color-slate) 82%, white);       /* [text-muted]      captions, helper text */
+  --color-subtle:     color-mix(in oklab, var(--color-slate) 55%, white);       /* [text-subtle]     placeholders, icons */
+  --color-disabled:   color-mix(in oklab, var(--color-slate) 30%, white);       /* [text-disabled] */
+  --color-link:       var(--color-blue);                                        /* [text-link] */
+  --color-link-hover: var(--color-blue-hover);
+
+  /* --- Buttons: PRIMARY  (Sign in, Submit, Save) --- */
+  --color-btn-primary:        var(--color-blue);                                /* [bg-btn-primary] */
+  --color-btn-primary-hover:  var(--color-blue-hover);
+  --color-btn-primary-text:   #ffffff;
+  /* --- Buttons: SECONDARY (Cancel, Back, Close) --- */
+  --color-btn-secondary-text:   var(--color-slate-hover);
+  --color-btn-secondary-border: var(--color-line-strong);
+  --color-btn-secondary-hover:  var(--color-slate-light);
+  /* --- Buttons: DANGER (Delete, Remove) --- */
+  --color-btn-danger:         var(--color-rose);
+  --color-btn-danger-hover:   var(--color-rose-hover);
+  --color-btn-danger-text:    #ffffff;
+  /* --- Buttons: ACCENT (Add new / Create) --- */
+  --color-btn-accent:         var(--color-emerald);
+  --color-btn-accent-hover:   var(--color-emerald-hover);
+  --color-btn-accent-text:    #ffffff;
+  /* --- keyboard focus ring for buttons/links --- */
+  --color-focus-ring:         color-mix(in oklab, var(--color-blue) 40%, transparent);
+
+  /* --- Inputs: text, select, textarea, search --- */
+  --color-input-bg:          #ffffff;                                           /* [bg-input-bg] */
+  --color-input-bg-disabled: var(--color-slate-light);
+  --color-input-border:      var(--color-line-strong);                          /* [border-input-border] */
+  --color-input-text:        var(--color-heading);                              /* [text-input-text] */
+  --color-input-placeholder: var(--color-subtle);
+  --color-input-focus:       var(--color-blue);                                 /* [focus:border-input-focus] */
+  --color-input-ring:        color-mix(in oklab, var(--color-blue) 25%, transparent); /* [focus:ring-input-ring] */
+  --color-input-error:       var(--color-rose);                                 /* [border-input-error] */
+  --color-input-error-ring:  color-mix(in oklab, var(--color-rose) 22%, transparent);
+
+  /* --- Tables --- */
+  --color-th-bg:     var(--color-slate-light);                                  /* [bg-th-bg] */
+  --color-th-text:   var(--color-slate-hover);                                  /* [text-th-text] */
+  --color-row-hover: var(--color-blue-50);                                      /* [hover:bg-row-hover] */
+
+  /* --- Status badges (Active / Pending / Error / Info) --- */
+  --color-status-success:       var(--color-emerald);
+  --color-status-success-soft:  var(--color-emerald-light);
+  --color-status-success-text:  var(--color-emerald-dark);
+  --color-status-success-line:  var(--color-emerald-200);
+  --color-status-warning:       var(--color-amber);
+  --color-status-warning-soft:  var(--color-amber-light);
+  --color-status-warning-text:  var(--color-amber-dark);
+  --color-status-warning-line:  var(--color-amber-200);
+  --color-status-danger:        var(--color-rose);
+  --color-status-danger-soft:   var(--color-rose-light);
+  --color-status-danger-text:   var(--color-rose-dark);
+  --color-status-danger-line:   var(--color-rose-200);
+  --color-status-info:          var(--color-blue);
+  --color-status-info-soft:     var(--color-blue-light);
+  --color-status-info-text:     var(--color-blue-dark);
+  --color-status-info-line:     var(--color-blue-200);
+
+  /* --- Sidebar / menu --- */
+  --color-nav-text:        var(--color-slate);
+  --color-nav-hover-bg:    var(--color-slate-light);
+  --color-nav-active-bg:   var(--color-blue-50);
+  --color-nav-active-text: var(--color-blue-dark);
+  --color-nav-indicator:   var(--color-blue);
+
+  /* ======================= PART 3: PLUMBING ======================= */
+  /* colors the old code used but the palette does not name */
+  --color-violet-50: var(--color-purple-50);
+  --color-violet-100: var(--color-purple-100);
+  --color-violet-200: var(--color-purple-200);
+  --color-violet-300: var(--color-purple-300);
+  --color-violet-400: var(--color-purple-400);
+  --color-violet-500: var(--color-purple-500);
+  --color-violet-600: var(--color-purple-600);
+  --color-violet-700: var(--color-purple-700);
+  --color-violet-800: var(--color-purple-800);
+  --color-violet-900: var(--color-purple-900);
+  --color-violet-950: var(--color-purple-950);
+  --color-red-50: var(--color-rose-50);
+  --color-red-100: var(--color-rose-100);
+  --color-red-200: var(--color-rose-200);
+  --color-red-300: var(--color-rose-300);
+  --color-red-400: var(--color-rose-400);
+  --color-red-500: var(--color-rose-500);
+  --color-red-600: var(--color-rose-600);
+  --color-red-700: var(--color-rose-700);
+  --color-red-800: var(--color-rose-800);
+  --color-red-900: var(--color-rose-900);
+  --color-red-950: var(--color-rose-950);
+  /* greys -> text / surface / border roles */
+  --color-slate-50: var(--color-surface-subtle);
+  --color-slate-100: var(--color-surface-muted);
+  --color-slate-200: var(--color-line);
+  --color-slate-300: var(--color-line-strong);
+  --color-slate-400: var(--color-subtle);
+  --color-slate-500: var(--color-muted);
+  --color-slate-600: var(--color-body);
+  --color-slate-700: var(--color-label);
+  --color-slate-800: var(--color-subheading);
+  --color-slate-900: var(--color-heading);
+  --color-slate-950: var(--color-heading);
+  --color-gray-50: var(--color-surface-subtle);
+  --color-gray-100: var(--color-surface-muted);
+  --color-gray-200: var(--color-line);
+  --color-gray-300: var(--color-line-strong);
+  --color-gray-400: var(--color-subtle);
+  --color-gray-500: var(--color-muted);
+  --color-gray-600: var(--color-body);
+  --color-gray-700: var(--color-label);
+  --color-gray-800: var(--color-subheading);
+  --color-gray-900: var(--color-heading);
+  --color-gray-950: var(--color-heading);
+}
+/* ==========================================================================
+   Styles that USE the roles from theme.css. Colors live in theme.css, not here.
+   Safe by design: element rules use :where() so any class on an element wins.
+   ========================================================================== */
+
+@layer base {
+  :root { color-scheme: light; }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-body);                 /* paragraphs inherit this */
+  }
+
+  /* Headings without their own text color class */
+  :where(h1, h2, h3, h4, h5, h6):not([class*="text-"]) { color: var(--color-heading); }
+
+  /* Plain links (links with a class keep their own look) */
+  :where(a:not([class])) { color: var(--color-link); }
+  :where(a:not([class])):hover { color: var(--color-link-hover); }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-blue) 25%, transparent);
+    color: var(--color-heading);
+  }
+
+  /* Form controls: text/placeholder/caret/disabled only (no borders or padding,
+     so inputs that sit inside custom wrappers keep their layout). */
+  :where(input, select, textarea) {
+    color: var(--color-input-text);
+    caret-color: var(--color-input-focus);
+  }
+  :where(input, textarea)::placeholder { color: var(--color-input-placeholder); opacity: 1; }
+  :where(input, select, textarea):disabled { cursor: not-allowed; }
+  :where(input[type="checkbox"], input[type="radio"], input[type="range"], progress) {
+    accent-color: var(--color-btn-primary);
+  }
+  :where(button, [role="button"], a):focus-visible {
+    outline: 2px solid var(--color-input-focus);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* ---------- Buttons:  <button class="btn btn-primary"> ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    border: 1px solid transparent; border-radius: .75rem;
+    padding: .625rem 1.1rem; font-size: .8125rem; font-weight: 600; line-height: 1.25;
+    cursor: pointer; transition: background-color .15s, border-color .15s, color .15s, transform .1s, box-shadow .15s;
+  }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--color-focus-ring); }
+  .btn:active:not(:disabled) { transform: scale(.98); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-sm { padding: .4rem .75rem; font-size: .75rem; border-radius: .6rem; }
+
+  .btn-primary   { background: var(--color-btn-primary); color: var(--color-btn-primary-text); }
+  .btn-primary:hover:not(:disabled)   { background: var(--color-btn-primary-hover); }
+
+  .btn-secondary { background: var(--color-surface); color: var(--color-btn-secondary-text); border-color: var(--color-btn-secondary-border); }
+  .btn-secondary:hover:not(:disabled) { background: var(--color-btn-secondary-hover); }
+
+  .btn-danger    { background: var(--color-btn-danger); color: var(--color-btn-danger-text); }
+  .btn-danger:hover:not(:disabled)    { background: var(--color-btn-danger-hover); }
+
+  .btn-danger-outline { background: var(--color-surface); color: var(--color-btn-danger); border-color: var(--color-status-danger-line); }
+  .btn-danger-outline:hover:not(:disabled) { background: var(--color-status-danger-soft); }
+
+  .btn-accent    { background: var(--color-btn-accent); color: var(--color-btn-accent-text); }
+  .btn-accent:hover:not(:disabled)    { background: var(--color-btn-accent-hover); }
+
+  .btn-ghost     { background: transparent; color: var(--color-btn-secondary-text); }
+  .btn-ghost:hover:not(:disabled)     { background: var(--color-surface-muted); }
+
+  /* ---------- Inputs:  <input class="field"> <select class="field"> <textarea class="field"> ---------- */
+  .field {
+    width: 100%; border-radius: .75rem; border: 1px solid var(--color-input-border);
+    background-color: var(--color-input-bg); color: var(--color-input-text);
+    padding: .625rem .875rem; font-size: .875rem; line-height: 1.35; outline: none;
+    transition: border-color .15s, box-shadow .15s, background-color .15s;
+  }
+  textarea.field { min-height: 6rem; resize: vertical; }
+  .field::placeholder { color: var(--color-input-placeholder); opacity: 1; }
+  .field:focus { border-color: var(--color-input-focus); box-shadow: 0 0 0 4px var(--color-input-ring); }
+  .field:disabled { background-color: var(--color-input-bg-disabled); color: var(--color-disabled); cursor: not-allowed; }
+  .field.is-invalid, .field[aria-invalid="true"] { border-color: var(--color-input-error); }
+  .field.is-invalid:focus, .field[aria-invalid="true"]:focus { box-shadow: 0 0 0 4px var(--color-input-error-ring); }
+
+  .field-label { display: block; margin-bottom: .375rem; font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--color-label); }
+  .field-hint  { margin-top: .375rem; font-size: .75rem; color: var(--color-muted); }
+  .field-error { margin-top: .375rem; font-size: .75rem; color: var(--color-status-danger-text); }
+
+  /* ---------- Badges:  <span class="badge badge-success"> ---------- */
+  .badge { display: inline-flex; align-items: center; gap: .25rem; border: 1px solid; border-radius: 999px; padding: .125rem .625rem; font-size: .6875rem; font-weight: 600; }
+  .badge-success { background: var(--color-status-success-soft); color: var(--color-status-success-text); border-color: var(--color-status-success-line); }
+  .badge-warning { background: var(--color-status-warning-soft); color: var(--color-status-warning-text); border-color: var(--color-status-warning-line); }
+  .badge-danger  { background: var(--color-status-danger-soft);  color: var(--color-status-danger-text);  border-color: var(--color-status-danger-line); }
+  .badge-info    { background: var(--color-status-info-soft);    color: var(--color-status-info-text);    border-color: var(--color-status-info-line); }
+
+  /* ---------- Card & table ---------- */
+  .card { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: 1rem; box-shadow: 0 1px 2px color-mix(in oklab, var(--color-slate) 8%, transparent); }
+  .table-head { background: var(--color-th-bg); color: var(--color-th-text); }
+  .table-row:hover { background: var(--color-row-hover); }
+}
+
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 64px}
+h1{font-size:1.8rem;margin:.2rem 0} h2{font-size:1.1rem;margin:0 0 .75rem} h3{font-size:.95rem;margin:0 0 .4rem}
+section{margin-top:20px} .grid{display:grid;gap:14px} .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center} .card{padding:18px}
+.pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.fam{border:1px solid var(--color-line);border-radius:12px;padding:10px}
+.toks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tok{position:relative;display:flex;flex-direction:column;gap:2px;font-size:11px;cursor:pointer}
+.tok .sw{height:34px;border-radius:8px;border:1px solid #0001} .tok b{color:var(--color-label);font-weight:600} .tok code{color:var(--color-muted)}
+.tok input{position:absolute;inset:0 0 auto 0;height:34px;width:100%;opacity:0;cursor:pointer}
+.bar{position:sticky;top:0;z-index:5;background:var(--color-surface);border-bottom:1px solid var(--color-line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+pre{background:var(--color-surface-subtle);border:1px solid var(--color-line);border-radius:10px;padding:10px;font-size:11.5px;overflow:auto;margin:0;max-height:260px}
+table{width:100%;border-collapse:collapse;font-size:14px} th,td{padding:9px 12px;text-align:left} tbody tr+tr td{border-top:1px solid var(--color-line)}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.nav a{display:block;padding:9px 12px;border-radius:9px;margin:2px 0;font-size:13px;text-decoration:none;color:var(--color-nav-text);position:relative}
+.nav a:hover{background:var(--color-nav-hover-bg)} .nav a.on{background:var(--color-nav-active-bg);color:var(--color-nav-active-text);font-weight:600}
+.nav a.on::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:4px;border-radius:0 4px 4px 0;background:var(--color-nav-indicator)}
+.sc{position:relative;overflow:hidden;border:1px solid var(--color-line);border-radius:16px;padding:14px;background:var(--color-surface)}
+.sc i{position:absolute;inset:0 0 auto 0;height:4px;background:var(--c)} .sc small{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted)}
+.sc b{display:block;font-size:1.8rem;color:var(--color-heading)} .sc .chip{position:absolute;right:12px;top:12px;width:28px;height:28px;border-radius:8px;background:var(--cl)}
+.sc .chip::after{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--cd)}
+</style></head><body>
+<div class="bar"><strong style="color:var(--color-heading)">Theme preview</strong>
+<span class="field-hint" style="margin:0">Click any swatch to try a color live (nothing is saved).</span>
+<button class="btn btn-secondary btn-sm" id="copy">Copy palette for theme.css</button><span id="msg" class="field-hint" style="margin:0"></span></div>
+<div class="wrap">
+  <section class="card"><h2>1. Palette — 10 colors × (base, hover, light, dark)</h2><div class="pal"><div class="fam"><h3>Blue</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-blue" value="#2563eb"><span class="sw" style="background:var(--color-blue)"></span><b>base</b><code>#2563eb</code></label><label class="tok"><input type="color" data-t="--color-blue-hover" value="#1d4ed8"><span class="sw" style="background:var(--color-blue-hover)"></span><b>hover</b><code>#1d4ed8</code></label><label class="tok"><input type="color" data-t="--color-blue-light" value="#dbeafe"><span class="sw" style="background:var(--color-blue-light)"></span><b>light</b><code>#dbeafe</code></label><label class="tok"><input type="color" data-t="--color-blue-dark" value="#1e40af"><span class="sw" style="background:var(--color-blue-dark)"></span><b>dark</b><code>#1e40af</code></label></div></div><div class="fam"><h3>Emerald</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-emerald" value="#059669"><span class="sw" style="background:var(--color-emerald)"></span><b>base</b><code>#059669</code></label><label class="tok"><input type="color" data-t="--color-emerald-hover" value="#047857"><span class="sw" style="background:var(--color-emerald-hover)"></span><b>hover</b><code>#047857</code></label><label class="tok"><input type="color" data-t="--color-emerald-light" value="#d1fae5"><span class="sw" style="background:var(--color-emerald-light)"></span><b>light</b><code>#d1fae5</code></label><label class="tok"><input type="color" data-t="--color-emerald-dark" value="#065f46"><span class="sw" style="background:var(--color-emerald-dark)"></span><b>dark</b><code>#065f46</code></label></div></div><div class="fam"><h3>Purple</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-purple" value="#7c3aed"><span class="sw" style="background:var(--color-purple)"></span><b>base</b><code>#7c3aed</code></label><label class="tok"><input type="color" data-t="--color-purple-hover" value="#6d28d9"><span class="sw" style="background:var(--color-purple-hover)"></span><b>hover</b><code>#6d28d9</code></label><label class="tok"><input type="color" data-t="--color-purple-light" value="#ede9fe"><span class="sw" style="background:var(--color-purple-light)"></span><b>light</b><code>#ede9fe</code></label><label class="tok"><input type="color" data-t="--color-purple-dark" value="#5b21b6"><span class="sw" style="background:var(--color-purple-dark)"></span><b>dark</b><code>#5b21b6</code></label></div></div><div class="fam"><h3>Rose</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-rose" value="#e11d48"><span class="sw" style="background:var(--color-rose)"></span><b>base</b><code>#e11d48</code></label><label class="tok"><input type="color" data-t="--color-rose-hover" value="#be123c"><span class="sw" style="background:var(--color-rose-hover)"></span><b>hover</b><code>#be123c</code></label><label class="tok"><input type="color" data-t="--color-rose-light" value="#ffe4e6"><span class="sw" style="background:var(--color-rose-light)"></span><b>light</b><code>#ffe4e6</code></label><label class="tok"><input type="color" data-t="--color-rose-dark" value="#9f1239"><span class="sw" style="background:var(--color-rose-dark)"></span><b>dark</b><code>#9f1239</code></label></div></div><div class="fam"><h3>Amber</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-amber" value="#d97706"><span class="sw" style="background:var(--color-amber)"></span><b>base</b><code>#d97706</code></label><label class="tok"><input type="color" data-t="--color-amber-hover" value="#b45309"><span class="sw" style="background:var(--color-amber-hover)"></span><b>hover</b><code>#b45309</code></label><label class="tok"><input type="color" data-t="--color-amber-light" value="#fef3c7"><span class="sw" style="background:var(--color-amber-light)"></span><b>light</b><code>#fef3c7</code></label><label class="tok"><input type="color" data-t="--color-amber-dark" value="#92400e"><span class="sw" style="background:var(--color-amber-dark)"></span><b>dark</b><code>#92400e</code></label></div></div><div class="fam"><h3>Cyan</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-cyan" value="#0891b2"><span class="sw" style="background:var(--color-cyan)"></span><b>base</b><code>#0891b2</code></label><label class="tok"><input type="color" data-t="--color-cyan-hover" value="#0e7490"><span class="sw" style="background:var(--color-cyan-hover)"></span><b>hover</b><code>#0e7490</code></label><label class="tok"><input type="color" data-t="--color-cyan-light" value="#cffafe"><span class="sw" style="background:var(--color-cyan-light)"></span><b>light</b><code>#cffafe</code></label><label class="tok"><input type="color" data-t="--color-cyan-dark" value="#155e75"><span class="sw" style="background:var(--color-cyan-dark)"></span><b>dark</b><code>#155e75</code></label></div></div><div class="fam"><h3>Indigo</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-indigo" value="#4f46e5"><span class="sw" style="background:var(--color-indigo)"></span><b>base</b><code>#4f46e5</code></label><label class="tok"><input type="color" data-t="--color-indigo-hover" value="#4338ca"><span class="sw" style="background:var(--color-indigo-hover)"></span><b>hover</b><code>#4338ca</code></label><label class="tok"><input type="color" data-t="--color-indigo-light" value="#e0e7ff"><span class="sw" style="background:var(--color-indigo-light)"></span><b>light</b><code>#e0e7ff</code></label><label class="tok"><input type="color" data-t="--color-indigo-dark" value="#3730a3"><span class="sw" style="background:var(--color-indigo-dark)"></span><b>dark</b><code>#3730a3</code></label></div></div><div class="fam"><h3>Orange</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-orange" value="#ea580c"><span class="sw" style="background:var(--color-orange)"></span><b>base</b><code>#ea580c</code></label><label class="tok"><input type="color" data-t="--color-orange-hover" value="#c2410c"><span class="sw" style="background:var(--color-orange-hover)"></span><b>hover</b><code>#c2410c</code></label><label class="tok"><input type="color" data-t="--color-orange-light" value="#ffedd5"><span class="sw" style="background:var(--color-orange-light)"></span><b>light</b><code>#ffedd5</code></label><label class="tok"><input type="color" data-t="--color-orange-dark" value="#9a3412"><span class="sw" style="background:var(--color-orange-dark)"></span><b>dark</b><code>#9a3412</code></label></div></div><div class="fam"><h3>Teal</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-teal" value="#0d9488"><span class="sw" style="background:var(--color-teal)"></span><b>base</b><code>#0d9488</code></label><label class="tok"><input type="color" data-t="--color-teal-hover" value="#0f766e"><span class="sw" style="background:var(--color-teal-hover)"></span><b>hover</b><code>#0f766e</code></label><label class="tok"><input type="color" data-t="--color-teal-light" value="#ccfbf1"><span class="sw" style="background:var(--color-teal-light)"></span><b>light</b><code>#ccfbf1</code></label><label class="tok"><input type="color" data-t="--color-teal-dark" value="#115e59"><span class="sw" style="background:var(--color-teal-dark)"></span><b>dark</b><code>#115e59</code></label></div></div><div class="fam"><h3>Slate</h3><div class="toks"><label class="tok"><input type="color" data-t="--color-slate" value="#475569"><span class="sw" style="background:var(--color-slate)"></span><b>base</b><code>#475569</code></label><label class="tok"><input type="color" data-t="--color-slate-hover" value="#334155"><span class="sw" style="background:var(--color-slate-hover)"></span><b>hover</b><code>#334155</code></label><label class="tok"><input type="color" data-t="--color-slate-light" value="#f1f5f9"><span class="sw" style="background:var(--color-slate-light)"></span><b>light</b><code>#f1f5f9</code></label><label class="tok"><input type="color" data-t="--color-slate-dark" value="#1e293b"><span class="sw" style="background:var(--color-slate-dark)"></span><b>dark</b><code>#1e293b</code></label></div></div></div></section>
+
+  <section class="card"><h2>Dashboard status cards (each status has its own color)</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))"><div class="sc" style="--c:var(--color-emerald);--cl:var(--color-emerald-light);--cd:var(--color-emerald-dark)"><i></i><small>Regular</small><b>7</b><span class="chip"></span></div><div class="sc" style="--c:var(--color-amber);--cl:var(--color-amber-light);--cd:var(--color-amber-dark)"><i></i><small>Probationary</small><b>14</b><span class="chip"></span></div><div class="sc" style="--c:var(--color-indigo);--cl:var(--color-indigo-light);--cd:var(--color-indigo-dark)"><i></i><small>Contractual</small><b>21</b><span class="chip"></span></div><div class="sc" style="--c:var(--color-cyan);--cl:var(--color-cyan-light);--cd:var(--color-cyan-dark)"><i></i><small>Part Time</small><b>28</b><span class="chip"></span></div><div class="sc" style="--c:var(--color-purple);--cl:var(--color-purple-light);--cd:var(--color-purple-dark)"><i></i><small>Trainee</small><b>35</b><span class="chip"></span></div><div class="sc" style="--c:var(--color-teal);--cl:var(--color-teal-light);--cd:var(--color-teal-dark)"><i></i><small>Shipboard</small><b>42</b><span class="chip"></span></div><div class="sc" style="--c:var(--color-rose);--cl:var(--color-rose-light);--cd:var(--color-rose-dark)"><i></i><small>Resigned</small><b>49</b><span class="chip"></span></div></div></section>
+
+  <section class="grid g2">
+    <div class="card"><h2>Headings &amp; paragraph</h2>
+      <h1>Heading 1</h1><h2>Heading 2</h2><h3>Heading 3</h3>
+      <p>Paragraph text uses the <b>body</b> role (slate). <a href="#">A plain link</a> uses the link role (blue).</p>
+      <p style="color:var(--color-muted)">Muted: helper text and captions.</p>
+      <p style="color:var(--color-subtle)">Subtle: placeholders and icons.</p>
+      <p style="color:var(--color-label);font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.05em">Label text</p></div>
+    <div class="card"><h2>Buttons</h2>
+      <div class="row"><button class="btn btn-primary">Sign in</button><button class="btn btn-primary">Submit</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn btn-secondary">Cancel</button><button class="btn btn-ghost">Ghost</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn btn-danger">Delete</button><button class="btn btn-danger-outline">Remove</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn btn-accent">+ Add new</button><button class="btn btn-primary" disabled>Disabled</button><button class="btn btn-primary btn-sm">Small</button></div></div>
+  </section>
+
+  <section class="grid g2">
+    <div class="card"><h2>Inputs</h2>
+      <label class="field-label" for="a">Full name</label><input id="a" class="field" placeholder="Click to see the focus color">
+      <p class="field-hint">Helper text sits under the field.</p>
+      <label class="field-label" style="margin-top:12px">Department</label><select class="field"><option>Operations</option><option>Crewing</option></select>
+      <label class="field-label" style="margin-top:12px">Notes</label><textarea class="field" placeholder="Textarea"></textarea>
+      <label class="field-label" style="margin-top:12px">Email (error)</label><input class="field is-invalid" value="not-an-email"><p class="field-error">Enter a valid email address.</p>
+      <label class="field-label" style="margin-top:12px">Disabled</label><input class="field" disabled value="Read only">
+      <div class="row" style="margin-top:12px"><label><input type="checkbox" checked> Checkbox</label><label><input type="radio" checked> Radio</label></div></div>
+    <div class="card"><h2>Badges</h2>
+      <div class="row"><span class="badge badge-success">Active</span><span class="badge badge-warning">Pending</span><span class="badge badge-danger">Inactive</span><span class="badge badge-info">Info</span></div>
+      <h2 style="margin-top:20px">Sidebar</h2><div class="nav"><a class="on" href="#">Dashboard</a><a href="#">Employees</a><a href="#">Settings</a></div></div>
+  </section>
+
+  <section class="card" style="padding:0;overflow:hidden"><table><thead class="table-head"><tr><th>Employee</th><th>Status</th><th>Date hired</th></tr></thead><tbody>
+    <tr class="table-row"><td>Juan Dela Cruz</td><td><span class="badge badge-success">Regular</span></td><td>Jan 5, 2020</td></tr>
+    <tr class="table-row"><td>Maria Santos</td><td><span class="badge badge-warning">Probationary</span></td><td>Mar 1, 2026</td></tr>
+    <tr class="table-row"><td>Pedro Reyes</td><td><span class="badge badge-danger">Resigned</span></td><td>Jul 9, 2018</td></tr></tbody></table></section>
+
+  <section class="card"><h2>Palette values to paste into src/theme.css (Part 1)</h2><pre id="out"></pre></section>
+</div>
+<script>
+const names=["--color-blue", "--color-blue-hover", "--color-blue-light", "--color-blue-dark", "--color-emerald", "--color-emerald-hover", "--color-emerald-light", "--color-emerald-dark", "--color-purple", "--color-purple-hover", "--color-purple-light", "--color-purple-dark", "--color-rose", "--color-rose-hover", "--color-rose-light", "--color-rose-dark", "--color-amber", "--color-amber-hover", "--color-amber-light", "--color-amber-dark", "--color-cyan", "--color-cyan-hover", "--color-cyan-light", "--color-cyan-dark", "--color-indigo", "--color-indigo-hover", "--color-indigo-light", "--color-indigo-dark", "--color-orange", "--color-orange-hover", "--color-orange-light", "--color-orange-dark", "--color-teal", "--color-teal-hover", "--color-teal-light", "--color-teal-dark", "--color-slate", "--color-slate-hover", "--color-slate-light", "--color-slate-dark"];
+const out=document.getElementById("out"), msg=document.getElementById("msg");
+const val=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function show(){let last="",t="";for(const n of names){const f=n.replace("--color-","").split("-")[0];if(f!==last){t+=(last?"\n":"")+"  /* "+f+" */\n";last=f}t+="  "+n+": "+val(n)+";\n"}out.textContent=t;
+  document.querySelectorAll(".tok").forEach(l=>l.querySelector("code").textContent=val(l.querySelector("input").dataset.t))}
+document.querySelectorAll(".tok input").forEach(i=>i.addEventListener("input",e=>{document.documentElement.style.setProperty(i.dataset.t,i.value);show()}));
+document.getElementById("copy").onclick=async()=>{try{await navigator.clipboard.writeText(out.textContent);msg.textContent="Copied!"}catch{msg.textContent="Select the text at the bottom and copy it."}};
+show();
+</script></body></html>

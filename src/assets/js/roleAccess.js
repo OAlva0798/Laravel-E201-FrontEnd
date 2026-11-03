@@ -2,25 +2,8 @@
 // ROLE ACCESS CONFIGURATION
 // ==========================================================
 
-export const ROLE_ACCESS = {
-  "Super Admin": ["*"],
-
-  Admin: [
-    "dashboard",
-    "center",
-    "department",
-    "position",
-    "userdetails",
-    "profile",
-    "system-settings",
-    "backup",
-  ],
-
-  User: [
-    "dashboard",
-    "profile",
-  ],
-};
+import { ROLE_TABS } from "../../config/site.config";
+export const ROLE_ACCESS = ROLE_TABS; // edit in src/config/site.config.js
 
 // ==========================================================
 // CHECK TAB ACCESS

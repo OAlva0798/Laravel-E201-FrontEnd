@@ -1,35 +1,6 @@
-// ==========================================================
-// API CONFIG
-// ==========================================================
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
-export const SERVER_BASE_URL = API_BASE_URL.replace(/\/api\/?$/,"",);
-
-// ==========================================================
-// ACCOUNT TYPES
-// ==========================================================
-export const ALLOWED_ACCOUNT_TYPES = [
-  "Super Admin",
-  "Admin",
-  "User",
-];
-
-// ==========================================================
-// AUTH STORAGE KEYS
-// ==========================================================
-export const AUTH_STORAGE_KEYS = [
-  "access_token",
-  "auth_user",
-  "token_type",
-  "uacc_type",
-  "uacc_reference",
-  "uacc_email",
-  "uacc_status",
-  "activeTab",
-];
-
-// ==========================================================
-// EMAIL VALIDATION
-// ==========================================================
-export const isValidEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email ?? "").trim());
-};
+// Kept so existing imports keep working. Edit values in src/config/site.config.js.
+import { API_BASE_URL, SERVER_BASE_URL, ACCOUNT_TYPES } from "../../config/site.config";
+export { API_BASE_URL, SERVER_BASE_URL };
+export const ALLOWED_ACCOUNT_TYPES = ACCOUNT_TYPES;
+export const AUTH_STORAGE_KEYS = ["access_token","auth_user","token_type","activeTab"];
+export const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email ?? "").trim());

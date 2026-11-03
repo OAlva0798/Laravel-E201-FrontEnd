@@ -5,7 +5,7 @@ import Modal from "../../../assets/function/Modal";
 /* ------------------------------ Shared helpers ------------------------------ */
 
 export const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-[13px] font-medium text-slate-800 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 disabled:bg-slate-100 disabled:text-slate-400";
+  "w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-[13px] font-medium text-slate-800 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-input-focus focus:bg-white focus:ring-4 focus:ring-input-ring disabled:bg-slate-100 disabled:text-slate-400";
 
 export const buttonClass =
   "inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-[13px] font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50";

@@ -120,7 +120,7 @@ export default function CenterForm({
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     placeholder={field.placeholder}
                     required={field.required}
-                    className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 transition-all"
+                    className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-input-ring focus:border-input-focus bg-slate-50/50 transition-all"
                   />
                 )}
 
@@ -133,7 +133,7 @@ export default function CenterForm({
                       {...field.props}
                       value={formData[field.name] || ""}
                       onChange={(value) => handleChange(field.name, value)}
-                      className="w-full text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 transition-all" 
+                      className="w-full text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-input-ring focus:border-input-focus bg-slate-50/50 transition-all" 
                     />
                   );
                 })()}

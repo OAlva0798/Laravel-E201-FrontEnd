@@ -1,3 +1,4 @@
+import { useOrgRefresh } from "../../../data/OrgDataContext";
 import React, { useState, useMemo, useEffect } from "react";
 import {
   showLoadingPopup,
@@ -74,6 +75,7 @@ export default function CrudManager({
   showTabCounts = true,
   showTabs = true,
 }) {
+  const refreshOrgData = useOrgRefresh();
   const configuredTabs = useMemo(() => {
     return tabs.map((tab) => ({
       ...tab,
@@ -173,6 +175,7 @@ export default function CrudManager({
       }
 
       if (onFetchItems) await onFetchItems();
+      refreshOrgData();
       showSuccessAlert(
         currentItem
           ? `${title} updated successfully.`
@@ -201,6 +204,7 @@ export default function CrudManager({
       }
 
       if (onFetchItems) await onFetchItems();
+      refreshOrgData();
       showSuccessAlert("Record removed successfully.");
     } catch (err) {
       showErrorAlert(err.message || "Could not delete record.");
@@ -235,6 +239,7 @@ export default function CrudManager({
       }
 
       if (onFetchItems) await onFetchItems();
+      refreshOrgData();
       showSuccessAlert(`Status switched to ${nextStatus}.`, 1200);
     } catch (err) {
       showErrorAlert(err.message || "Status update failed.");

@@ -268,7 +268,7 @@ function CopyButton({ value }) {
       onClick={handleCopy}
       title={copied ? "Copied" : "Copy to clipboard"}
       aria-label={copied ? "Copied to clipboard" : "Copy to clipboard"}
-      className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-input-ring"
     >
       <i className={`bi ${copied ? "bi-check2 text-emerald-600" : "bi-copy"}`} />
     </button>
@@ -408,7 +408,7 @@ function ProfileLayout({ record, fullName, profileUrl, resolveOrg, organizationL
                     aria-selected={selected}
                     aria-controls={`employee-panel-${t.id}`}
                     onClick={() => setActiveTab(t.id)}
-                    className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-[11px] font-semibold transition focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:gap-2 sm:text-xs ${
+                    className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-[11px] font-semibold transition focus:outline-none focus:ring-2 focus:ring-input-ring sm:gap-2 sm:text-xs ${
                       selected
                         ? "bg-slate-900 text-white shadow-sm"
                         : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"

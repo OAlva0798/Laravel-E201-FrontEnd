@@ -1,3 +1,4 @@
+import { useOrgData } from "../../../data/OrgDataContext";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 
 import Modal from "../../../assets/function/Modal";
@@ -280,17 +281,16 @@ export default function UserDetailsForm({
 
   const [touched, setTouched] = useState({});
 
-  const [centers, setCenters] = useState([]);
-
-  const [departments, setDepartments] = useState([]);
-
-  const [positions, setPositions] = useState([]);
-
-  const [loadingCenters, setLoadingCenters] = useState(false);
-
-  const [loadingDepartments, setLoadingDepartments] = useState(false);
-
-  const [loadingPositions, setLoadingPositions] = useState(false);
+  const { center, department, position } = useOrgData(
+    ["center", "department", "position"],
+    { enabled: isOpen },
+  );
+  const centers = center.list;
+  const departments = department.list;
+  const positions = position.list;
+  const loadingCenters = center.loading;
+  const loadingDepartments = department.loading;
+  const loadingPositions = position.loading;
 
   // ======================================================
   // FORM ERROR
@@ -302,63 +302,6 @@ export default function UserDetailsForm({
       setErrorAlert(null);
     }, 5000);
   }, []);
-
-  // ======================================================
-  // FETCH HELPER
-  // ======================================================
-  const fetchData = useCallback(
-    async (endpoint, setData, setLoading) => {
-      try {
-        setLoading(true);
-
-        const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-          headers: {
-            Accept: "application/json",
-          },
-        });
-
-        if (!res.ok) {
-          throw new Error(`Failed to fetch data from ${endpoint}`);
-        }
-
-        const result = await res.json();
-
-        const data = Array.isArray(result)
-          ? result
-          : Array.isArray(result?.data)
-            ? result.data
-            : [];
-
-        setData(data);
-      } catch (err) {
-        console.error(`Fetch Error (${endpoint}):`, err);
-
-        showFormError(err.message || "Failed to fetch data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [showFormError],
-  );
-
-  // ======================================================
-  // LOAD DROPDOWN DATA
-  // ======================================================
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    fetchData("/centers/active-centers", setCenters, setLoadingCenters);
-
-    fetchData(
-      "/departments/active-departments",
-      setDepartments,
-      setLoadingDepartments,
-    );
-
-    fetchData("/positions/active-positions", setPositions, setLoadingPositions);
-  }, [isOpen, fetchData]);
 
   // ======================================================
   // INITIALIZE FORM
@@ -845,7 +788,7 @@ export default function UserDetailsForm({
                         className={`w-full text-xs px-3.5 py-2.5 border rounded-xl focus:outline-none focus:ring-2 bg-slate-50/50 transition-all ${
                           touched[field.name] && fieldErrors[field.name]
                             ? "border-rose-300 focus:ring-rose-500/20 focus:border-rose-500"
-                            : "border-slate-200 focus:ring-blue-500/20 focus:border-blue-500"
+                            : "border-slate-200 focus:ring-input-ring focus:border-input-focus"
                         }`}
                       />
                     )}

@@ -9,9 +9,9 @@ import {
 import {
   API_BASE_URL,
   ALLOWED_ACCOUNT_TYPES,
-  AUTH_STORAGE_KEYS,
 } from "./assets/js/appConfig";
 
+import { getToken, saveAuth, updateStoredUser, clearAuth } from "./lib/auth";
 import FirstVisitModal from "./pages/FirstVisitModal";
 import Index from "./pages/Index";
 import VerifyEmail from "./pages/VerifyEmail";
@@ -38,71 +38,6 @@ const isPublicPage = () => PUBLIC_PATHS.includes(path());
 // ==========================================================
 // AUTH STORAGE
 // ==========================================================
-
-const getStoredAuth = () => {
-  for (const storage of [localStorage, sessionStorage]) {
-    const token = storage.getItem("access_token");
-
-    if (!token) continue;
-
-    let user = null;
-
-    try {
-      user = JSON.parse(storage.getItem("auth_user") || "null");
-    } catch {
-      user = null;
-    }
-
-    return {
-      token,
-      user,
-      storage,
-    };
-  }
-
-  return {
-    token: null,
-    user: null,
-    storage: null,
-  };
-};
-
-const clearAuthStorage = () => {
-  [...AUTH_STORAGE_KEYS, "activeTab"].forEach((key) => {
-    localStorage.removeItem(key);
-    sessionStorage.removeItem(key);
-  });
-};
-
-const saveStoredUser = (storage, user) => {
-  if (!storage || !user) return;
-
-  Object.entries({
-    auth_user: JSON.stringify(user),
-    uacc_type: user.uacc_type || "",
-    uacc_reference: user.uacc_reference || "",
-    uacc_email: user.uacc_email || "",
-    uacc_status: user.uacc_status || "",
-  }).forEach(([key, value]) => {
-    storage.setItem(key, value);
-  });
-};
-
-const saveAuth = (response, rememberMe = true) => {
-  const storage = rememberMe ? localStorage : sessionStorage;
-  const other = rememberMe ? sessionStorage : localStorage;
-
-  [...AUTH_STORAGE_KEYS, "activeTab"].forEach((key) => {
-    other.removeItem(key);
-  });
-
-  storage.setItem("access_token", response.access_token);
-  storage.setItem("token_type", response.token_type || "Bearer");
-
-  saveStoredUser(storage, response.user);
-
-  storage.setItem("activeTab", "dashboard");
-};
 
 const redirectToEmailVerification = (email = "") =>
   window.location.assign(
@@ -170,7 +105,7 @@ function App() {
   // --------------------------------------------------------
 
   const signOutLocally = useCallback(() => {
-    clearAuthStorage();
+    clearAuth();
 
     setUser(null);
     setIsAuthenticated(false);
@@ -181,7 +116,7 @@ function App() {
   // --------------------------------------------------------
 
   const loadCurrentUser = useCallback(async () => {
-    const { token, storage } = getStoredAuth();
+    const token = getToken();
 
     if (!token) {
       signOutLocally();
@@ -240,7 +175,7 @@ function App() {
         );
       }
 
-      saveStoredUser(storage, currentUser);
+      updateStoredUser(currentUser);
 
       setUser(currentUser);
       setIsAuthenticated(true);
@@ -309,7 +244,7 @@ function App() {
   // --------------------------------------------------------
 
   const handleLogout = useCallback(async () => {
-    const { token } = getStoredAuth();
+    const token = getToken();
 
     showLoadingPopup("Signing out...");
 

@@ -1,3 +1,4 @@
+import { saveAuth } from "../lib/auth";
 import React, { useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import Swal from "sweetalert2";
@@ -46,28 +47,7 @@ const INITIAL_FORM = {
 
 /** Saves the login result to localStorage (remember me) or sessionStorage. */
 function saveAuthSession({ data, user, rememberMe }) {
-  const authData = {
-    access_token: data.access_token,
-    auth_user: JSON.stringify(user),
-    token_type: data.token_type || "No Data Available.",
-    uacc_type: user.uacc_type || "",
-    uacc_reference: user.uacc_reference || "",
-    uacc_email: user.uacc_email || "",
-    uacc_status: user.uacc_status || "",
-  };
-
-  // Clear old values from BOTH storages so only one copy exists.
-  Object.keys(authData).forEach((key) => {
-    localStorage.removeItem(key);
-    sessionStorage.removeItem(key);
-  });
-
-  const storage = rememberMe ? localStorage : sessionStorage;
-
-  Object.entries(authData).forEach(([key, value]) => {
-    storage.setItem(key, value);
-  });
-
+  saveAuth({ ...data, user }, rememberMe);
   localStorage.setItem("activeTab", "dashboard");
 }
 
@@ -124,7 +104,7 @@ function LoginFields({ form, setField, disabled, settings }) {
               setField("rememberMe")(event.target.checked)
             }
             disabled={disabled}
-            className="h-4 w-4 cursor-pointer rounded-md border-slate-300 text-emerald-600 focus:ring-emerald-500/20"
+            className="h-4 w-4 cursor-pointer rounded-md border-slate-300 text-emerald-600 focus:ring-input-ring"
           />
 
           <label
