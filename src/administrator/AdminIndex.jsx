@@ -8,6 +8,7 @@ import Profile      from "./profile/Profile";
 
 import { OrgDataProvider } from "../data/OrgDataContext";
 import Employees       from "./Employees/EmployeesContent";
+import Report       from "./Report/ReportContent";
 
 import Company       from "./Maintenance/Company/CompanyContent";
 import Center       from "./Maintenance/Center/CenterContent";
@@ -70,6 +71,14 @@ export const TAB_CONFIG = {
     label: "Employees",
     section: "main",
     icon: <i className="bi bi-people text-xl" />,
+  },
+
+  report: {
+    title: "Reports",
+    component: <Report />,
+    label: "Reports",
+    section: "main",
+    icon: <i className="bi bi-bar-chart text-xl" />,
   },
 
   // ========================================================

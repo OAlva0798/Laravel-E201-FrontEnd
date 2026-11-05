@@ -1,12 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   apiRequest,
   extractList,
+  firstDefined,
   getErrorMessage,
   getFullName,
-  firstDefined,
   normalize,
 } from "./Employees/employeeShared";
+
 import { useOrgData } from "../data/OrgDataContext";
 import { getStoredUser } from "../lib/auth";
 import { hasRoleAccess } from "../assets/js/roleAccess";
@@ -20,6 +27,7 @@ export const RANGES = [
 ];
 
 const PREF_KEY = "dashboard:prefs:v4";
+
 const DEFAULT_PREFS = {
   range: "month",
   tab: "birthdays",
@@ -30,7 +38,10 @@ const DEFAULT_PREFS = {
 
 const readPrefs = () => {
   try {
-    return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(PREF_KEY)) };
+    return {
+      ...DEFAULT_PREFS,
+      ...JSON.parse(localStorage.getItem(PREF_KEY)),
+    };
   } catch {
     return DEFAULT_PREFS;
   }
@@ -46,7 +57,10 @@ const writePrefs = (prefs) => {
 
 const parseYMD = (value) => {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(normalize(value));
-  return match ? { y: +match[1], m: +match[2], d: +match[3] } : null;
+
+  return match
+    ? { y: +match[1], m: +match[2], d: +match[3] }
+    : null;
 };
 
 const isLeapYear = (year) =>
@@ -54,16 +68,19 @@ const isLeapYear = (year) =>
 
 export const getMidnightToday = () => {
   const now = new Date();
+
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 };
 
 function getNextOccurrence({ m, d }, today) {
   const createDate = (year) => {
     const day = m === 2 && d === 29 && !isLeapYear(year) ? 28 : d;
+
     return new Date(year, m - 1, day);
   };
 
   const thisYearOccurrence = createDate(today.getFullYear());
+
   return thisYearOccurrence >= today
     ? thisYearOccurrence
     : createDate(today.getFullYear() + 1);
@@ -79,7 +96,7 @@ export function upcomingDatesByRange(
   employees,
   fieldSelector,
   rangeKey,
-  today = getMidnightToday()
+  today = getMidnightToday(),
 ) {
   const results = [];
   const currentYear = today.getFullYear();
@@ -94,11 +111,12 @@ export function upcomingDatesByRange(
         : emp[fieldSelector];
 
     const ymd = parseYMD(rawValue);
+
     if (!ymd) continue;
 
     const occurrenceDate = getNextOccurrence(ymd, today);
     const daysUntil = Math.round(
-      (occurrenceDate.getTime() - today.getTime()) / 86400000
+      (occurrenceDate.getTime() - today.getTime()) / 86400000,
     );
     const tenureYears = occurrenceDate.getFullYear() - ymd.y;
 
@@ -116,6 +134,7 @@ export function upcomingDatesByRange(
         occurrenceDate.getMonth() === currentMonth;
     } else if (rangeKey === "next_month") {
       const nextMonthDate = new Date(currentYear, currentMonth + 1, 1);
+
       isMatch =
         occurrenceDate.getFullYear() === nextMonthDate.getFullYear() &&
         occurrenceDate.getMonth() === nextMonthDate.getMonth();
@@ -136,6 +155,7 @@ export function upcomingDatesByRange(
 
 const getEmployeeProfileUrl = (profile) => {
   const value = normalize(profile);
+
   if (!value) return "";
   if (/^(https?:|data:|blob:)/i.test(value)) return value;
 
@@ -150,12 +170,13 @@ export const hireDate = (emp) =>
   firstDefined(
     emp.ee_date_hired,
     emp.ee_date_hired_nykfil,
-    emp.ee_date_hired_tdg
+    emp.ee_date_hired_tdg,
   );
 
 export const dayLabel = (days) => {
   if (days === 0) return "Today 🎉";
   if (days === 1) return "Tomorrow";
+
   return `In ${days} days`;
 };
 
@@ -185,8 +206,10 @@ function MetricCard({
       onKeyDown={(e) =>
         onClick && (e.key === "Enter" || e.key === " ") && onClick()
       }
-      className={`flex cursor-pointer items-center justify-between rounded-xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
-        active ? "ring-2 ring-slate-900 border-transparent" : "border-slate-200"
+      className={`flex w-full max-w-sm cursor-pointer items-center justify-between rounded-xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
+        active
+          ? "ring-2 ring-slate-900 border-transparent"
+          : "border-slate-200"
       }`}
     >
       <div className="min-w-0">
@@ -197,6 +220,7 @@ function MetricCard({
           {loading ? "…" : count}
         </p>
       </div>
+
       <span
         className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-lg ${
           schemes[colorScheme] || schemes.blue
@@ -226,7 +250,10 @@ function ControlBar({
   return (
     <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/70 p-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-lg bg-slate-200/60 p-1 text-sm" role="tablist">
+        <div
+          className="inline-flex rounded-lg bg-slate-200/60 p-1 text-sm"
+          role="tablist"
+        >
           <button
             type="button"
             role="tab"
@@ -240,6 +267,7 @@ function ControlBar({
           >
             🎂 Birthdays ({birthdaysCount})
           </button>
+
           <button
             type="button"
             role="tab"
@@ -270,6 +298,7 @@ function ControlBar({
             >
               <i className="bi bi-list-ul" />
             </button>
+
             <button
               type="button"
               onClick={() => onViewModeChange("grid")}
@@ -362,6 +391,7 @@ function Pagination({
           Showing <strong>{startItem}</strong>–<strong>{endItem}</strong> of{" "}
           <strong>{totalItems}</strong> entries
         </span>
+
         <select
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
@@ -447,23 +477,23 @@ function EmployeeListItem({ item, activeTab, deptName, onSelect }) {
             <p className="truncate text-sm font-bold text-slate-900">
               {getFullName(emp)}
             </p>
-            {activeTab === "anniversaries" && (years % 5 === 0 || years === 1) && (
-              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
-                ⭐ {years} {years === 1 ? "Year" : "Years"} Milestone
-              </span>
-            )}
+
+            {activeTab === "anniversaries" &&
+              (years % 5 === 0 || years === 1) && (
+                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
+                  ⭐ {years} {years === 1 ? "Year" : "Years"} Milestone
+                </span>
+              )}
           </div>
 
           <p className="truncate text-xs font-medium text-slate-500">
             ID: {emp.ee_id || "—"}
             {deptName ? ` · ${deptName}` : ""}
           </p>
+
           <p className="truncate text-xs text-slate-500">
-            {getEmployeeStatus(emp)}
-            {" · "}
-            {emp.ee_email || emp.email || "No email"}
-            {" · "}
-            {emp.ee_mobile_number || emp.phone || "No phone"}
+            {getEmployeeStatus(emp)} · {emp.ee_email || emp.email || "No email"}{" "}
+            · {emp.ee_mobile_number || emp.phone || "No phone"}
           </p>
         </div>
       </div>
@@ -474,23 +504,26 @@ function EmployeeListItem({ item, activeTab, deptName, onSelect }) {
             {years} {years === 1 ? "yr" : "yrs"}
           </span>
         )}
+
         <span className="hidden text-xs font-medium text-slate-500 sm:inline">
           {date.toLocaleDateString(undefined, {
             month: "short",
             day: "numeric",
           })}
         </span>
-        <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${badgeClass}`}>
+
+        <span
+          className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${badgeClass}`}
+        >
           {dayLabel(days)}
         </span>
       </div>
     </div>
   );
 }
-
 function EmployeeCardGrid({ list, activeTab, getDeptName, onSelect }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="flex flex-wrap justify-center gap-3">
       {list.map((item) => {
         const { emp, date, days, years } = item;
         const isToday = days === 0;
@@ -505,69 +538,60 @@ function EmployeeCardGrid({ list, activeTab, getDeptName, onSelect }) {
             onKeyDown={(e) =>
               (e.key === "Enter" || e.key === " ") && onSelect(item)
             }
-            className={`flex cursor-pointer flex-col justify-between rounded-xl border p-4 transition-all hover:shadow-md ${
+            className={`flex w-full max-w-sm cursor-pointer flex-col justify-between rounded-xl border p-4 text-center transition-all hover:shadow-md ${
               isToday
                 ? "border-amber-300 bg-amber-50/40"
                 : "border-slate-200 bg-white"
             }`}
           >
-            <div className="flex items-start gap-3">
-              <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100">
-                <i className="bi bi-person-fill text-2xl text-slate-400" />
+            <div className="flex flex-col items-center justify-center text-center">
+              {/* Centered Profile Avatar */}
+              <div className="mx-auto mb-3 flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-slate-200 bg-slate-100 shadow-sm">
                 {emp.ee_profile && (
                   <img
                     src={getEmployeeProfileUrl(emp.ee_profile)}
                     alt={`${getFullName(emp)} profile`}
-                    className="absolute inset-0 size-full rounded-full object-cover"
+                    className="h-full object-cover object-center"
                     onError={(e) => e.currentTarget.remove()}
                   />
                 )}
               </div>
 
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-bold text-slate-900">
+              <div className="flex w-full flex-col items-center text-center">
+                <p
+                  className="w-full truncate text-sm font-bold text-slate-900"
+                  title={getFullName(emp)}
+                >
                   {getFullName(emp)}
                 </p>
-                <p className="truncate text-xs text-slate-500">
+
+                {/* <p className="w-full truncate text-xs text-slate-500">
                   ID: {emp.ee_id || "—"}
-                </p>
-                <p className="truncate text-xs text-slate-500">
+                </p> */}
+
+                <p
+                  className="w-full truncate text-xs font-medium text-slate-600"
+                  title={deptName || "No department"}
+                >
                   {deptName || "No department"}
                 </p>
               </div>
-            </div>
 
-            <div className="mt-3 space-y-1 text-xs text-slate-600">
-              <p className="truncate">
-                <span className="font-semibold">Status:</span>{" "}
-                {getEmployeeStatus(emp)}
-              </p>
-              <p className="truncate">
-                <span className="font-semibold">Email:</span>{" "}
-                {emp.ee_email || emp.email || "—"}
-              </p>
-              <p className="truncate">
-                <span className="font-semibold">Phone:</span>{" "}
-                {emp.ee_mobile_number || emp.phone || "—"}
-              </p>
-            </div>
-
-            <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
-              <span className="font-medium text-slate-600">
+              <span className="font-medium text-xs text-slate-600">
                 {date.toLocaleDateString(undefined, {
                   month: "short",
                   day: "numeric",
                 })}
-                {activeTab === "anniversaries" && ` (${years} yrs)`}
+                {activeTab === "anniversaries" && ` ( ${years} yrs ${dayLabel(days)})`}
               </span>
+
               <span
-                className={`rounded-md px-2 py-1 font-semibold ${
+                className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${
                   isToday
                     ? "bg-amber-600 text-white"
                     : "bg-slate-100 text-slate-700"
                 }`}
               >
-                {dayLabel(days)}
               </span>
             </div>
           </div>
@@ -576,7 +600,6 @@ function EmployeeCardGrid({ list, activeTab, getDeptName, onSelect }) {
     </div>
   );
 }
-
 function EmployeeDetailModal({ item, activeTab, deptName, onClose }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -584,6 +607,7 @@ function EmployeeDetailModal({ item, activeTab, deptName, onClose }) {
     };
 
     window.addEventListener("keydown", handleKeyDown);
+
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
@@ -598,7 +622,9 @@ function EmployeeDetailModal({ item, activeTab, deptName, onClose }) {
     ? "Happy Birthday! 🎉"
     : `Happy ${years}-Year Work Anniversary! 🏆`;
 
-  const emailBody = `Hi ${emp.ee_firstname || getFullName(emp)},\n\nWishing you a wonderful ${
+  const emailBody = `Hi ${
+    emp.ee_firstname || getFullName(emp)
+  },\n\nWishing you a wonderful ${
     isBirthday ? "birthday" : `${years}-year work anniversary`
   } today! Thank you for all your hard work and dedication.\n\nBest regards,\nTeam`;
 
@@ -621,13 +647,13 @@ function EmployeeDetailModal({ item, activeTab, deptName, onClose }) {
             <i className="bi bi-x-lg text-sm" />
           </button>
 
-          <div className="relative mx-auto mb-3 flex size-20 items-center justify-center overflow-hidden rounded-full border-2 border-white/20 bg-slate-800 shadow-inner">
-            <i className="bi bi-person-fill text-4xl text-slate-400" />
+          <div className="relative mx-auto mb-3 flex size-25 items-center justify-center overflow-hidden rounded-full border-2 border-white/20 bg-slate-800 shadow-inner">
+            {/* <i className="bi bi-person-fill text-4xl text-slate-400" /> */}
             {emp.ee_profile && (
               <img
                 src={getEmployeeProfileUrl(emp.ee_profile)}
                 alt={`${getFullName(emp)} profile`}
-                className="absolute inset-0 size-full rounded-full object-cover"
+                className="h-full rounded-full object-cover"
                 onError={(e) => e.currentTarget.remove()}
               />
             )}
@@ -674,12 +700,14 @@ function EmployeeDetailModal({ item, activeTab, deptName, onClose }) {
                 {email || "—"}
               </span>
             </div>
+
             <div className="flex justify-between gap-3">
               <span className="shrink-0 text-slate-500">Phone:</span>
               <span className="text-right font-medium text-slate-800">
                 {phone || "—"}
               </span>
             </div>
+
             {hireDate(emp) && (
               <div className="flex justify-between gap-3">
                 <span className="shrink-0 text-slate-500">Hire date:</span>
@@ -689,17 +717,6 @@ function EmployeeDetailModal({ item, activeTab, deptName, onClose }) {
               </div>
             )}
           </div>
-
-          {email && (
-            <a
-              href={`mailto:${email}?subject=${encodeURIComponent(
-                emailSubject
-              )}&body=${encodeURIComponent(emailBody)}`}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white shadow transition hover:bg-slate-800"
-            >
-              <i className="bi bi-envelope-fill" /> Send Greeting Email
-            </a>
-          )}
         </div>
       </div>
     </div>
@@ -724,17 +741,21 @@ function UltraCompactDashboard() {
   const updatePref = (keyName, value) => {
     setPrefs((previous) => {
       const next = { ...previous, [keyName]: value };
+
       writePrefs(next);
+
       return next;
     });
   };
 
   const loadData = useCallback(async (signal, silent = false) => {
     if (!silent) setLoading(true);
+
     setError("");
 
     try {
       const response = await apiRequest("/employees", {}, signal);
+
       setEmployees(extractList(response));
     } catch (err) {
       if (err?.name !== "AbortError" && !silent) {
@@ -747,42 +768,44 @@ function UltraCompactDashboard() {
 
   useEffect(() => {
     const controller = new AbortController();
+
     loadData(controller.signal);
+
     return () => controller.abort();
   }, [loadData]);
 
   const getDeptName = useCallback(
-    (emp) =>
-      department?.map?.get(String(emp.ee_department_reference)) || "",
-    [department]
+    (emp) => department?.map?.get(String(emp.ee_department_reference)) || "",
+    [department],
   );
 
   const activeStaffCount = useMemo(
     () => employees.filter(isCurrentStaff).length,
-    [employees]
+    [employees],
   );
 
   const birthdays = useMemo(
     () => upcomingDatesByRange(employees, "ee_birth_date", prefs.range),
-    [employees, prefs.range]
+    [employees, prefs.range],
   );
 
   const anniversaries = useMemo(
     () => upcomingDatesByRange(employees, hireDate, prefs.range),
-    [employees, prefs.range]
+    [employees, prefs.range],
   );
 
   const todayBirthdays = useMemo(
     () => upcomingDatesByRange(employees, "ee_birth_date", "today"),
-    [employees]
+    [employees],
   );
 
   const todayAnniversaries = useMemo(
     () => upcomingDatesByRange(employees, hireDate, "today"),
-    [employees]
+    [employees],
   );
 
-  const activeList = prefs.tab === "birthdays" ? birthdays : anniversaries;
+  const activeList =
+    prefs.tab === "birthdays" ? birthdays : anniversaries;
 
   const filteredList = useMemo(() => {
     const term = searchQuery.trim().toLowerCase();
@@ -802,14 +825,14 @@ function UltraCompactDashboard() {
       ];
 
       return searchableValues.some((value) =>
-        normalize(value).toLowerCase().includes(term)
+        normalize(value).toLowerCase().includes(term),
       );
     });
 
     return result.sort((a, b) => {
       if (prefs.sortBy === "name") {
         return normalize(a.emp.ee_lastname).localeCompare(
-          normalize(b.emp.ee_lastname)
+          normalize(b.emp.ee_lastname),
         );
       }
 
@@ -820,7 +843,7 @@ function UltraCompactDashboard() {
       return (
         a.days - b.days ||
         normalize(a.emp.ee_lastname).localeCompare(
-          normalize(b.emp.ee_lastname)
+          normalize(b.emp.ee_lastname),
         )
       );
     });
@@ -835,6 +858,7 @@ function UltraCompactDashboard() {
 
   const paginatedList = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
+
     return filteredList.slice(start, start + pageSize);
   }, [filteredList, currentPage, pageSize]);
 
@@ -870,6 +894,7 @@ function UltraCompactDashboard() {
     const blob = new Blob(["\uFEFF", csvContent], {
       type: "text/csv;charset=utf-8;",
     });
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
 
@@ -878,11 +903,12 @@ function UltraCompactDashboard() {
     document.body.appendChild(link);
     link.click();
     link.remove();
+
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 pb-6 text-sm text-slate-800">
+    <div className="mx-auto space-y-4 pb-2 text-sm text-slate-800">
       {error && (
         <div
           className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
@@ -893,7 +919,7 @@ function UltraCompactDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="flex flex-wrap justify-center gap-4">
         <MetricCard
           title="Active Staff"
           count={activeStaffCount}
@@ -901,6 +927,7 @@ function UltraCompactDashboard() {
           colorScheme="blue"
           loading={loading}
         />
+
         <MetricCard
           title="Birthdays Today"
           count={todayBirthdays.length}
@@ -913,6 +940,7 @@ function UltraCompactDashboard() {
           }}
           active={prefs.tab === "birthdays" && prefs.range === "today"}
         />
+
         <MetricCard
           title="Anniversaries Today"
           count={todayAnniversaries.length}
@@ -960,6 +988,7 @@ function UltraCompactDashboard() {
               <p className="mt-2 font-medium text-slate-700">
                 No matches found for this selection.
               </p>
+
               {searchQuery ? (
                 <button
                   type="button"

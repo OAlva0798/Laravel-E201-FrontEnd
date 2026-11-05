@@ -43,7 +43,7 @@ export const getInitials = (name) => {
 
 export const getFullName = (e, fallback = "—") => {
   const last = normalize(e?.ee_lastname);
-  const rest = [e?.ee_firstname, e?.ee_middlename].map(normalize).filter(Boolean).join(" ");
+  const rest = [e?.ee_firstname, e?.ee_middlename, e?.ee_suffix].map(normalize).filter(Boolean).join(" ");
   return last && rest ? `${last}, ${rest}` : last || rest || fallback;
 };
 

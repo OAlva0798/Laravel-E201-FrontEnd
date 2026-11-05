@@ -19,6 +19,8 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^4.19.2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "mysql2": "^3.9.2",
     "node-cron": "^4.6.0",
     "quill": "^2.0.3",

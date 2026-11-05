@@ -46,7 +46,7 @@ const NAME_FIELDS = [
 
 const EMPTY_FORM = {
   ee_id_number: "", ee_id_biometrics: "", ee_profile: "", ee_firstname: "", ee_middlename: "",
-  ee_lastname: "", ee_gender: "", ee_birth_date: "", ee_civil_status: "", ee_email: "",
+  ee_lastname: "", ee_suffix: "", ee_gender: "", ee_birth_date: "", ee_civil_status: "", ee_email: "",
   ee_mobile_number: "", ee_telephone: "", ee_sss: "", ee_tinid: "", ee_bloodtype: "",
   ee_ecname: "", ee_eccontact: "", ee_ecaddress: "", ee_company_reference: "",
   ee_center_reference: "", ee_department_reference: "", ee_position_reference: "",
@@ -166,11 +166,11 @@ const getColumns = (handleOpenModal, handleDelete, toggleStatus) => [
   { header: "Employee", accessor: "employee_search", className: "w-[18%]", render: (r) => <TwoLine top={`${r.full_name} (${r.ee_id_number || "—"})`} bottom={r.ee_email} /> },
   { header: "Company & Center", accessor: "company_center_search", className: "w-[22%]", render: (r) => <TwoLine top={r.company_name} bottom={r.center_name} /> },
   { header: "Department & Position", accessor: "position_level_search", className: "w-[26%]", render: (r) => <TwoLine top={r.department_name} bottom={r.position_name} /> },
-  { header: "Level & Type", accessor: "ee_employment_status", className: "w-[12%]", render: (r) => <TwoLine top={r.position_level_name} bottom={r.ee_employment_status} /> },
-  { header: "Status", accessor: "ee_status", className: "w-[6%] text-center", render: (r) => <StatusBadge status={r.ee_status} onClick={() => toggleStatus(r.ee_id)} /> },
-  { header: "Files", accessor: "e201_file_count", className: "w-[5%] text-center", render: (r) => <FileCountBadge count={r.e201_file_count} type="total" /> },
+  { header: "Level & Type", accessor: "ee_employment_status", className: "w-[0%]", render: (r) => <TwoLine top={r.position_level_name} bottom={r.ee_employment_status} /> },
+  { header: "Status", accessor: "ee_status", className: "w-[0%] text-center", render: (r) => <StatusBadge status={r.ee_status} onClick={() => toggleStatus(r.ee_id)} /> },
+  // { header: "Files", accessor: "e201_file_count", className: "w-[5%] text-center", render: (r) => <FileCountBadge count={r.e201_file_count} type="total" /> },
   { header: "Missing", accessor: "e201_missing_count", className: "w-[5%] text-center", render: (r) => <FileCountBadge count={r.e201_missing_count} type="missing" /> },
-  { header: "Actions", sortable: false, className: "w-[6%] text-center", render: (r) => <ActionButtons onView={() => handleOpenModal(r, "view")} onEdit={() => handleOpenModal(r, "edit")} onDelete={() => handleDelete(r.ee_id)} /> },
+  { header: "Actions", sortable: false, className: "w-[0%] text-center", render: (r) => <ActionButtons onView={() => handleOpenModal(r, "view")} onEdit={() => handleOpenModal(r, "edit")} onDelete={() => handleDelete(r.ee_id)} /> },
 ];
 
 /* ============================================================================

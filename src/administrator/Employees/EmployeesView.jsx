@@ -41,8 +41,9 @@ const TABS_CONFIG = [
         icon: "bi-person",
         fields: [
           f("First Name", "ee_firstname", "sm:col-span-4"),
-          f("Middle Name", "ee_middlename", "sm:col-span-4"),
-          f("Last Name", "ee_lastname", "sm:col-span-4"),
+          f("Middle Name", "ee_middlename", "sm:col-span-3"),
+          f("Last Name", "ee_lastname", "sm:col-span-3"),
+          f("Suffix", "ee_suffix", "sm:col-span-2"),
           f("Gender", "ee_gender", "sm:col-span-3"),
           f("Birth Date", "ee_birth_date", "sm:col-span-3", { type: "date" }),
           f("Civil Status", "ee_civil_status", "sm:col-span-3"),

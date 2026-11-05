@@ -106,7 +106,8 @@ const SECTIONS = [
     fields: [
       input("ee_firstname", "First Name", 4, { required: true, placeholder: "Enter first name" }),
       input("ee_middlename", "Middle Name", 4, { placeholder: "Optional" }),
-      input("ee_lastname", "Last Name", 4, { required: true, placeholder: "Enter last name" }),
+      input("ee_lastname", "Last Name", 3, { required: true, placeholder: "Enter last name" }),
+      input("ee_suffix", "Suffix", 1, { placeholder: "Optional" }),
       staticSelect("ee_gender", "Gender", 3, ["Male", "Female", "Other"], { required: true }),
       input("ee_birth_date", "Birth Date", 3, { inputType: "date", required: true }),
       staticSelect("ee_civil_status", "Civil Status", 3,
