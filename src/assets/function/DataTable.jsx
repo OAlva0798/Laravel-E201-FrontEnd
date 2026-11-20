@@ -445,7 +445,7 @@ export default function DataTable({
           PAGINATION CONTROLS
       ================================================== */}
       {totalResults > 0 && (
-        <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 p-3 sm:flex-row sm:px-4 sm:py-3">
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 p-0 sm:flex-row sm:p-2">
           {/* Result summary */}
           <div className="text-center text-xs text-slate-500 sm:text-left">
             Showing{" "}

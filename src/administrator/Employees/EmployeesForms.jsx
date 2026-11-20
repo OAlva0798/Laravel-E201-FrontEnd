@@ -3,6 +3,12 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import Modal from "../../assets/function/Modal";
 import SearchableSelect from "../../assets/function/SearchableSelect";
 import { API_BASE_URL } from "../../assets/js/appConfig";
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showLoadingPopup,
+  showConfirmDialog,
+} from "../../assets/js/swalHelpers";
 
 import {
   EMPLOYMENT_STATUSES,
@@ -34,7 +40,8 @@ const SPAN = {
 };
 
 const TABS = [
-  { id: "personal", label: "Personal & Contact", shortLabel: "Personal", icon: "bi-person-vcard" },
+  { id: "personal", label: "Personal Information", shortLabel: "Personal", icon: "bi-person-vcard" },
+  { id: "emergency", label: "Emergency Contact", shortLabel: "Emergency", icon: "bi-exclamation-triangle" },
   { id: "employment", label: "Employment", shortLabel: "Work", icon: "bi-briefcase" },
 ];
 
@@ -138,16 +145,18 @@ const SECTIONS = [
   },
   {
     id: "emergency",
-    tab: "personal",
+    tab: "emergency",
     title: "Emergency Contact",
     description: "Who to contact in an emergency",
     icon: "bi-telephone-plus",
     fields: [
+      staticSelect("ee_ecrelationship", "Relationship", 4,
+        ["Spouse", "Child", "Parent", "Sibling", "Friend", "Other"], { required: true }),
       input("ee_ecname", "Name", 4, { required: true, placeholder: "Contact person's name" }),
-      input("ee_eccontact", "Number", 3, {
+      input("ee_eccontact", "Number", 4, {
         inputType: "tel", required: true, placeholder: "Contact number",
       }),
-      input("ee_ecaddress", "Address", 5, { required: true, placeholder: "Contact address" }),
+      input("ee_ecaddress", "Address", 12, { required: true, placeholder: "Contact address" }),
     ],
   },
   {
@@ -360,8 +369,8 @@ export default function EmployeesForm({
       const failed = results.filter(Boolean);
       setFailedDropdowns(failed);
       if (failed.length) {
-        setErrorAlert(
-          `Couldn't load: ${failed.join(", ")}. Check your connection and use "Try again".`,
+        showErrorAlert(
+          `Couldn't load: ${failed.join(", ")}. Please check your connection and try again.`
         );
       }
     });
@@ -455,9 +464,18 @@ export default function EmployeesForm({
   }, [dropdownData, centerValue, departmentValue]);
 
   /* ---------- close ---------- */
-  const handleClose = () => {
+  const handleClose = async () => {
     if (isLoading) return;
-    if (isDirty && !window.confirm("You have unsaved changes. Close without saving?")) return;
+
+    if (isDirty) {
+      const confirmed = await showConfirmDialog(
+        "Discard Changes?",
+        "You have unsaved changes. Are you sure you want to close without saving?"
+      );
+
+      if (!confirmed) return;
+    }
+
     onClose();
   };
 
@@ -578,11 +596,9 @@ export default function EmployeesForm({
 
     if (invalid.length) {
       const first = invalid[0];
-      setErrorAlert(
-        `Please fix ${invalid.length} ${invalid.length === 1 ? "field" : "fields"} before saving. ` +
-          `We've jumped to the first one.`,
+      showErrorAlert(
+        `Please fix ${invalid.length} ${invalid.length === 1 ? "field" : "fields"} before saving. We've jumped to the first one.`
       );
-
       const targetTab = FIELD_TAB[first.name];
       if (targetTab !== "sidebar") setActiveTab(targetTab);
 
@@ -978,12 +994,16 @@ function FileDropzone({ field, value, fileSrc, onFileChange, onError, fullName }
     if (!file) return;
 
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      onError("Unsupported file type. Please upload a JPG, PNG, GIF, or WEBP image.");
+      showErrorAlert(
+        "Unsupported file type. Please upload a JPG, PNG, GIF, or WEBP image."
+      );
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      onError(`That image is too large (${formatFileSize(file.size)}). The maximum size is 5 MB.`);
+      showErrorAlert(
+        `That image is too large (${formatFileSize(file.size)}). The maximum size is 5 MB.`
+      );
       return;
     }
 

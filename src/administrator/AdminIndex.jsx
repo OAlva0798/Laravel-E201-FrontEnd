@@ -9,6 +9,7 @@ import Profile      from "./profile/Profile";
 import { OrgDataProvider } from "../data/OrgDataContext";
 import Employees       from "./Employees/EmployeesContent";
 import Report       from "./Report/ReportContent";
+import COE       from "./COE/COEContent";
 
 import Company       from "./Maintenance/Company/CompanyContent";
 import Center       from "./Maintenance/Center/CenterContent";
@@ -77,8 +78,16 @@ export const TAB_CONFIG = {
     title: "Reports",
     component: <Report />,
     label: "Reports",
-    section: "main",
+    section: "For Audit",
     icon: <i className="bi bi-bar-chart text-xl" />,
+  },
+
+  coe: {
+    title: "COE",
+    component: <COE />,
+    label: "COE",
+    section: "For Audit",
+    icon: <i className="bi bi-file-earmark-pdf text-xl" />,
   },
 
   // ========================================================

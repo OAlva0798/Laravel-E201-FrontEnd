@@ -52,6 +52,29 @@ export const showErrorAlert = (message = "Something went wrong.") => {
 };
 
 // ==========================================================
+// CONFIRMATION (Without default parameters)
+// ==========================================================
+
+export const showConfirmDialog = async (title, text) => {
+  const result = await Swal.fire({
+    title,
+    text,
+    icon: "warning",
+    showCancelButton: true,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showCloseButton: false,
+    confirmButtonColor: "#e11d48",
+    cancelButtonColor: themeColor("--color-slate", "#475569"),
+    confirmButtonText: "Yes, proceed!",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+  });
+
+  return result.isConfirmed;
+};
+
+// ==========================================================
 // DELETE CONFIRMATION
 // ==========================================================
 

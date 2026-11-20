@@ -8,14 +8,15 @@ const origin = (url) => {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  
   // Your own API / backup servers, taken from .env so nothing is hardcoded.
+  const apiTarget = env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
   const api = [
-    origin(env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api"),
+    origin(apiTarget),
     origin(env.VITE_BACKUP_API_URL || ""),
   ].filter(Boolean).join(" ");
 
   // Content-Security-Policy: PRODUCTION BUILD ONLY, so `npm run dev` is never blocked.
-  // If something shows "This content is blocked", add its source to the matching line.
   const csp = [
     "default-src 'self'",
     "script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
@@ -24,7 +25,6 @@ export default defineConfig(({ mode }) => {
     `media-src 'self' blob: data: https: ${api}`,
     "font-src 'self' data:",
     `connect-src 'self' ${api}`,
-    // frames: reCAPTCHA + document preview (blob:/API files)
     `frame-src 'self' blob: data: https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/ ${api}`,
     "object-src 'self' blob:", // PDF preview needs this
     "base-uri 'self'",
@@ -42,5 +42,21 @@ export default defineConfig(({ mode }) => {
           html.replace("</title>", `</title>\n    <meta http-equiv="Content-Security-Policy" content="${csp}" />`),
       },
     ],
+    server: {
+      port: 5173,
+      proxy: {
+        // Automatically proxy backend routes during `npm run dev` to avoid CORS issues
+        "/files": {
+          target: apiTarget,
+          changeOrigin: true,
+          secure: false,
+        },
+        "/api": {
+          target: apiTarget,
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
   };
 });

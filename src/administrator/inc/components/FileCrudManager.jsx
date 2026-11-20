@@ -669,7 +669,7 @@ const toggleStatus = useCallback(
    * =================================================== */
 
   return (
-    <div className="space-y-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+    <div className="space-y-4 rounded-xl border border-slate-100 bg-white p-4 pb-0 shadow-sm">
       <div className="min-w-0">
         {header ? customHeaderContent : defaultHeader}
       </div>

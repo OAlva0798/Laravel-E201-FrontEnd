@@ -1,11 +1,18 @@
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { API_BASE_URL } from "../../assets/js/appConfig";
 import { ORG } from "../../data/OrgDataContext";
 import DataTable from "../../assets/function/DataTable";
+import SearchableSelect from "../../assets/function/SearchableSelect";
 
 import {
   apiRequest,
@@ -134,12 +141,14 @@ const EMPTY_FILTERS = {
 
 const pick = (record, fields) => {
   for (const field of fields) {
+    const value = record?.[field];
+
     if (
-      record?.[field] !== undefined &&
-      record?.[field] !== null &&
-      record[field] !== ""
+      value !== undefined &&
+      value !== null &&
+      value !== ""
     ) {
-      return record[field];
+      return value;
     }
   }
 
@@ -149,20 +158,14 @@ const pick = (record, fields) => {
 const normalize = (value) =>
   String(value ?? "").trim().toLowerCase();
 
-/**
- * Formats dates without timezone shifting.
- * Supports:
- * 2026-08-13
- * 2026-08-13T00:00:00.000000Z
- * 2026-08-13 00:00:00
- */
 const formatDate = (value) => {
   if (!value) return "—";
 
   const dateString = String(value).trim();
 
-  // Extract the calendar date directly to avoid UTC timezone shifting.
-  const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const match = dateString.match(
+    /^(\d{4})-(\d{2})-(\d{2})/
+  );
 
   if (match) {
     const [, year, month, day] = match;
@@ -170,10 +173,12 @@ const formatDate = (value) => {
     const date = new Date(
       Number(year),
       Number(month) - 1,
-      Number(day),
+      Number(day)
     );
 
-    if (Number.isNaN(date.getTime())) return dateString;
+    if (Number.isNaN(date.getTime())) {
+      return dateString;
+    }
 
     return date.toLocaleDateString("en-PH", {
       year: "numeric",
@@ -184,7 +189,9 @@ const formatDate = (value) => {
 
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) return dateString;
+  if (Number.isNaN(date.getTime())) {
+    return dateString;
+  }
 
   return date.toLocaleDateString("en-PH", {
     year: "numeric",
@@ -259,10 +266,6 @@ const downloadBlob = (blob, filename) => {
   URL.revokeObjectURL(url);
 };
 
-/**
- * Shared export formatter.
- * Used by BOTH PDF and CSV exports.
- */
 const getExportValue = (row, column) => {
   const accessor = column.accessor;
 
@@ -279,9 +282,11 @@ const getExportValue = (row, column) => {
   }
 
   if (
-    accessor === "employee_count" ||
-    accessor === "active_count" ||
-    accessor === "inactive_count"
+    [
+      "employee_count",
+      "active_count",
+      "inactive_count",
+    ].includes(accessor)
   ) {
     return row[accessor] ?? 0;
   }
@@ -307,7 +312,10 @@ export default function ReportGenerator() {
   const [orgLists, setOrgLists] = useState({});
 
   const [reportType, setReportType] = useState("employees");
-  const [filters, setFilters] = useState(EMPTY_FILTERS);
+
+  const [filters, setFilters] = useState({
+    ...EMPTY_FILTERS,
+  });
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -334,12 +342,15 @@ export default function ReportGenerator() {
                 list.map((item) => [
                   String(item[config.valueKey] ?? ""),
                   item[config.labelKey] ?? "",
-                ]),
+                ])
               ),
             },
           ];
         } catch (err) {
-          console.error(`Unable to load ${key}:`, err);
+          console.error(
+            `Unable to load ${key}:`,
+            err
+          );
 
           return [
             key,
@@ -349,7 +360,7 @@ export default function ReportGenerator() {
             },
           ];
         }
-      }),
+      })
     );
 
     const lists = {};
@@ -374,17 +385,21 @@ export default function ReportGenerator() {
     setError("");
 
     try {
-      const [employeeResult, movementResult, lookups] =
-        await Promise.all([
-          apiRequest("/employees"),
-          apiRequest("/employee-movements"),
-          fetchOrganizations(),
-        ]);
+      const [
+        employeeResult,
+        movementResult,
+        lookups,
+      ] = await Promise.all([
+        apiRequest(API.employees),
+        apiRequest(API.movements),
+        fetchOrganizations(),
+      ]);
 
       const employeeList = extractList(employeeResult);
       const movementList = extractList(movementResult);
 
-      // EMPLOYEES
+      /* EMPLOYEES */
+
       const employeeRows = employeeList.map((employee) => {
         const row = {
           ...employee,
@@ -393,13 +408,16 @@ export default function ReportGenerator() {
 
         ORG_FIELDS.forEach(
           ({ key, referenceFields, nameField }) => {
-            const reference = pick(employee, referenceFields);
+            const reference = pick(
+              employee,
+              referenceFields
+            );
 
             row[nameField] =
               lookups?.[key]?.get(String(reference)) ||
               pick(employee, [nameField]) ||
               String(reference || "—");
-          },
+          }
         );
 
         return row;
@@ -409,10 +427,11 @@ export default function ReportGenerator() {
         employeeRows.map((employee) => [
           String(employee.ee_id_number ?? ""),
           employee,
-        ]),
+        ])
       );
 
-      // MOVEMENTS
+      /* MOVEMENTS */
+
       const movementRows = movementList.map((movement) => {
         const employeeNumber = getEmployeeNumber(movement);
 
@@ -431,7 +450,9 @@ export default function ReportGenerator() {
               : getEmployeeName(movement),
 
           ee_id_number:
-            employeeNumber || employee.ee_id_number || "—",
+            employeeNumber ||
+            employee.ee_id_number ||
+            "—",
         };
 
         ORG_FIELDS.forEach(
@@ -445,7 +466,7 @@ export default function ReportGenerator() {
               pick(movement, [nameField]) ||
               pick(employee, [nameField]) ||
               String(reference || "—");
-          },
+          }
         );
 
         return row;
@@ -457,7 +478,7 @@ export default function ReportGenerator() {
       console.error("Report loading error:", err);
 
       setError(
-        err?.message || "Unable to load report data.",
+        err?.message || "Unable to load report data."
       );
 
       setEmployees([]);
@@ -519,7 +540,9 @@ export default function ReportGenerator() {
 
           group.employee_count += 1;
 
-          if (normalize(employee.ee_status) === "active") {
+          if (
+            normalize(employee.ee_status) === "active"
+          ) {
             group.active_count += 1;
           } else if (
             normalize(employee.ee_status) === "inactive"
@@ -581,22 +604,24 @@ export default function ReportGenerator() {
         return false;
       }
 
-      if (filters.dateFrom) {
-        if (
-          !date ||
-          String(date).slice(0, 10) < filters.dateFrom
-        ) {
-          return false;
-        }
+      const normalizedDate = date
+        ? String(date).slice(0, 10)
+        : "";
+
+      if (
+        filters.dateFrom &&
+        (!normalizedDate ||
+          normalizedDate < filters.dateFrom)
+      ) {
+        return false;
       }
 
-      if (filters.dateTo) {
-        if (
-          !date ||
-          String(date).slice(0, 10) > filters.dateTo
-        ) {
-          return false;
-        }
+      if (
+        filters.dateTo &&
+        (!normalizedDate ||
+          normalizedDate > filters.dateTo)
+      ) {
+        return false;
       }
 
       return true;
@@ -707,7 +732,8 @@ export default function ReportGenerator() {
         {
           header: "Employment Status",
           accessor: "ee_employment_status",
-          render: (row) => getStatus(row) || "—",
+          render: (row) =>
+            getStatus(row) || "—",
         },
       ];
     }
@@ -740,57 +766,66 @@ export default function ReportGenerator() {
   const updateFilter = (key, value) => {
     setFilters((current) => ({
       ...current,
-      [key]: value,
+      [key]: value ?? "",
     }));
   };
 
   const clearFilters = () => {
-    setFilters({ ...EMPTY_FILTERS });
+    setFilters({
+      ...EMPTY_FILTERS,
+    });
   };
+
+  /* ==========================================================================
+     SEARCHABLE SELECT OPTIONS
+  ========================================================================== */
 
   const companyOptions = useMemo(
     () =>
       (orgLists.company || [])
         .map((row) => ({
-          value: row[ORG.company?.valueKey],
-          label: row[ORG.company?.labelKey],
+          value: String(
+            row[ORG.company?.valueKey] ?? ""
+          ),
+          label:
+            row[ORG.company?.labelKey] ?? "",
         }))
         .filter(
-          (row) =>
-            row.value !== undefined &&
-            row.value !== null,
+          (row) => row.value && row.label
         ),
-    [orgLists],
+    [orgLists]
   );
 
   const centerOptions = useMemo(
     () =>
       (orgLists.center || [])
         .map((row) => ({
-          value: row[ORG.center?.valueKey],
-          label: row[ORG.center?.labelKey],
+          value: String(
+            row[ORG.center?.valueKey] ?? ""
+          ),
+          label:
+            row[ORG.center?.labelKey] ?? "",
         }))
         .filter(
-          (row) =>
-            row.value !== undefined &&
-            row.value !== null,
+          (row) => row.value && row.label
         ),
-    [orgLists],
+    [orgLists]
   );
 
   const departmentOptions = useMemo(
     () =>
       (orgLists.department || [])
         .map((row) => ({
-          value: row[ORG.department?.valueKey],
-          label: row[ORG.department?.labelKey],
+          value: String(
+            row[ORG.department?.valueKey] ?? ""
+          ),
+          label:
+            row[ORG.department?.labelKey] ?? "",
         }))
         .filter(
-          (row) =>
-            row.value !== undefined &&
-            row.value !== null,
+          (row) => row.value && row.label
         ),
-    [orgLists],
+    [orgLists]
   );
 
   const statusOptions =
@@ -806,29 +841,31 @@ export default function ReportGenerator() {
      EXPORT DATA
   ========================================================================== */
 
-  const exportRows = useMemo(() => {
-    return filteredData.map((row) =>
-      columns.map((column) =>
-        getExportValue(row, column),
+  const exportRows = useMemo(
+    () =>
+      filteredData.map((row) =>
+        columns.map((column) =>
+          getExportValue(row, column)
+        )
       ),
-    );
-  }, [filteredData, columns]);
+    [filteredData, columns]
+  );
 
   /* ==========================================================================
-     CSV / EXCEL EXPORT
+     CSV EXPORT
   ========================================================================== */
 
   const exportCsv = () => {
     if (!filteredData.length) return;
 
     const headers = columns.map(
-      (column) => column.header,
+      (column) => column.header
     );
 
     const csv = [
       headers.map(escapeCsv).join(","),
       ...exportRows.map((row) =>
-        row.map(escapeCsv).join(","),
+        row.map(escapeCsv).join(",")
       ),
     ].join("\r\n");
 
@@ -836,7 +873,7 @@ export default function ReportGenerator() {
       new Blob(["\uFEFF", csv], {
         type: "text/csv;charset=utf-8;",
       }),
-      `${reportType}-report-${getFileDate()}.csv`,
+      `${reportType}-report-${getFileDate()}.csv`
     );
   };
 
@@ -856,7 +893,7 @@ export default function ReportGenerator() {
     });
 
     const report = REPORTS.find(
-      (item) => item.value === reportType,
+      (item) => item.value === reportType
     );
 
     doc.setFontSize(16);
@@ -865,7 +902,7 @@ export default function ReportGenerator() {
     doc.text(
       "NTMA - EMPLOYEE MANAGEMENT SYSTEM",
       14,
-      15,
+      15
     );
 
     doc.setFontSize(12);
@@ -874,7 +911,7 @@ export default function ReportGenerator() {
     doc.text(
       report?.label || "Employee Report",
       14,
-      23,
+      23
     );
 
     doc.setFontSize(9);
@@ -883,23 +920,21 @@ export default function ReportGenerator() {
     doc.text(
       `Generated: ${new Date().toLocaleString("en-PH")}`,
       14,
-      29,
+      29
     );
 
     doc.text(
       `Total Records: ${filteredData.length}`,
       14,
-      34,
+      34
     );
 
     const headers = columns.map(
-      (column) => column.header,
+      (column) => column.header
     );
 
     const body = exportRows.map((row) =>
-      row.map((value) =>
-        String(value ?? "—"),
-      ),
+      row.map((value) => String(value ?? "—"))
     );
 
     autoTable(doc, {
@@ -949,7 +984,7 @@ export default function ReportGenerator() {
       doc.text(
         `Page ${page} of ${pageCount}`,
         doc.internal.pageSize.getWidth() - 30,
-        doc.internal.pageSize.getHeight() - 7,
+        doc.internal.pageSize.getHeight() - 7
       );
     }
 
@@ -965,7 +1000,7 @@ export default function ReportGenerator() {
     if (!filteredData.length) return;
 
     buildPdf().save(
-      `${reportType}-report-${getFileDate()}.pdf`,
+      `${reportType}-report-${getFileDate()}.pdf`
     );
   };
 
@@ -979,24 +1014,12 @@ export default function ReportGenerator() {
     const blob = buildPdf().output("blob");
     const url = URL.createObjectURL(blob);
 
-    setPreviewUrl((previous) => {
-      if (previous) {
-        URL.revokeObjectURL(previous);
-      }
-
-      return url;
-    });
-
+    setPreviewUrl(url);
     setPreviewOpen(true);
   };
 
   const closePdfPreview = () => {
     setPreviewOpen(false);
-
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl("");
-    }
   };
 
   useEffect(() => {
@@ -1008,7 +1031,7 @@ export default function ReportGenerator() {
   }, [previewUrl]);
 
   const activeReport = REPORTS.find(
-    (report) => report.value === reportType,
+    (report) => report.value === reportType
   );
 
   /* ==========================================================================
@@ -1020,7 +1043,7 @@ export default function ReportGenerator() {
 
       {/* HEADER */}
 
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+      {/* <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-lg font-bold text-slate-800">
             Report Generator
@@ -1044,7 +1067,7 @@ export default function ReportGenerator() {
           />
           Refresh Data
         </button>
-      </div>
+      </div> */}
 
       {/* REPORT SELECTION */}
 
@@ -1117,86 +1140,98 @@ export default function ReportGenerator() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
 
-          {/* COMPANY */}
+          {/* COMPANY - SEARCHABLE */}
 
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
               Company
-            </span>
+            </label>
 
-            <select
-              value={filters.company}
-              onChange={(event) =>
-                updateFilter("company", event.target.value)
+            <SearchableSelect
+              options={companyOptions}
+              value={
+                companyOptions.find(
+                  (option) =>
+                    normalize(option.label) ===
+                    normalize(filters.company)
+                )?.value || ""
               }
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="">All Companies</option>
+              onChange={(value) => {
+                const selected = companyOptions.find(
+                  (option) =>
+                    String(option.value) === String(value)
+                );
 
-              {companyOptions.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.label}
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+                updateFilter(
+                  "company",
+                  selected?.label || ""
+                );
+              }}
+              placeholder="All Companies"
+            />
+          </div>
 
-          {/* CENTER */}
+          {/* CENTER - SEARCHABLE */}
 
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
               Center
-            </span>
+            </label>
 
-            <select
-              value={filters.center}
-              onChange={(event) =>
-                updateFilter("center", event.target.value)
+            <SearchableSelect
+              options={centerOptions}
+              value={
+                centerOptions.find(
+                  (option) =>
+                    normalize(option.label) ===
+                    normalize(filters.center)
+                )?.value || ""
               }
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="">All Centers</option>
+              onChange={(value) => {
+                const selected = centerOptions.find(
+                  (option) =>
+                    String(option.value) === String(value)
+                );
 
-              {centerOptions.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.label}
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+                updateFilter(
+                  "center",
+                  selected?.label || ""
+                );
+              }}
+              placeholder="All Centers"
+            />
+          </div>
 
-          {/* DEPARTMENT */}
+          {/* DEPARTMENT - SEARCHABLE */}
 
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
               Department
-            </span>
+            </label>
 
-            <select
-              value={filters.department}
-              onChange={(event) =>
-                updateFilter("department", event.target.value)
+            <SearchableSelect
+              options={departmentOptions}
+              value={
+                departmentOptions.find(
+                  (option) =>
+                    normalize(option.label) ===
+                    normalize(filters.department)
+                )?.value || ""
               }
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="">All Departments</option>
+              onChange={(value) => {
+                const selected = departmentOptions.find(
+                  (option) =>
+                    String(option.value) === String(value)
+                );
 
-              {departmentOptions.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.label}
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+                updateFilter(
+                  "department",
+                  selected?.label || ""
+                );
+              }}
+              placeholder="All Departments"
+            />
+          </div>
 
           {/* STATUS */}
 
@@ -1208,7 +1243,10 @@ export default function ReportGenerator() {
             <select
               value={filters.status}
               onChange={(event) =>
-                updateFilter("status", event.target.value)
+                updateFilter(
+                  "status",
+                  event.target.value
+                )
               }
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
@@ -1233,7 +1271,10 @@ export default function ReportGenerator() {
               type="date"
               value={filters.dateFrom}
               onChange={(event) =>
-                updateFilter("dateFrom", event.target.value)
+                updateFilter(
+                  "dateFrom",
+                  event.target.value
+                )
               }
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
@@ -1251,7 +1292,10 @@ export default function ReportGenerator() {
               min={filters.dateFrom || undefined}
               value={filters.dateTo}
               onChange={(event) =>
-                updateFilter("dateTo", event.target.value)
+                updateFilter(
+                  "dateTo",
+                  event.target.value
+                )
               }
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
@@ -1261,68 +1305,74 @@ export default function ReportGenerator() {
 
       {/* REPORT TABLE */}
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <div className="flex flex-col justify-between gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center">
-          <div>
-            <h3 className="text-sm font-semibold text-slate-800">
-              {activeReport?.label}
-            </h3>
+      <div className="space-y-4 rounded-xl border border-slate-100 bg-white p-4 pb-0 shadow-sm">
+        {/* DATA TABLE */}
+        <div className="">
+          {/* TABLE HEADER */}
 
-            <p className="text-xs text-slate-500">
-              {filteredData.length.toLocaleString()} matching records
-            </p>
+          <div className="flex flex-col justify-between gap-3 p-2 pt-0 sm:flex-row sm:items-center">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-800">
+                {activeReport?.label}
+              </h3>
+
+              <p className="text-xs text-slate-500">
+                {filteredData.length.toLocaleString()} matching records
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+
+              <button
+                type="button"
+                onClick={openPdfPreview}
+                disabled={!filteredData.length || loading}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+              >
+                <i className="bi bi-eye" />
+                Preview PDF
+              </button>
+
+              <button
+                type="button"
+                onClick={exportCsv}
+                disabled={!filteredData.length || loading}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-50"
+              >
+                <i className="bi bi-filetype-csv" />
+                Export CSV
+              </button>
+
+              <button
+                type="button"
+                onClick={downloadPdf}
+                disabled={!filteredData.length || loading}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <i className="bi bi-file-earmark-pdf" />
+                Download PDF
+              </button>
+
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={openPdfPreview}
-              disabled={!filteredData.length || loading}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
-            >
-              <i className="bi bi-eye" />
-              Preview PDF
-            </button>
+          {/* ERROR */}
 
-            <button
-              type="button"
-              onClick={exportCsv}
-              disabled={!filteredData.length || loading}
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-50"
-            >
-              <i className="bi bi-filetype-csv" />
-              Export CSV
-            </button>
+          {error && (
+            <div className="m-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+              <i className="bi bi-exclamation-circle mr-2" />
 
-            <button
-              type="button"
-              onClick={downloadPdf}
-              disabled={!filteredData.length || loading}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <i className="bi bi-file-earmark-pdf" />
-              Download PDF
-            </button>
-          </div>
-        </div>
+              {error}
 
-        {error && (
-          <div className="m-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-            <i className="bi bi-exclamation-circle mr-2" />
-
-            {error}
-
-            <button
-              type="button"
-              onClick={fetchReports}
-              className="ml-2 font-semibold underline"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        <div className="p-3">
+              <button
+                type="button"
+                onClick={fetchReports}
+                className="ml-2 font-semibold underline"
+              >
+                Try again
+              </button>
+            </div>
+          )}
           <DataTable
             key={reportType}
             columns={columns}
@@ -1348,7 +1398,7 @@ export default function ReportGenerator() {
         </div>
       </div>
 
-      {/* PDF PREVIEW */}
+      {/* PDF PREVIEW MODAL */}
 
       {previewOpen && (
         <div
@@ -1373,6 +1423,7 @@ export default function ReportGenerator() {
               </div>
 
               <div className="flex items-center gap-2">
+
                 <button
                   type="button"
                   onClick={downloadPdf}
@@ -1390,6 +1441,7 @@ export default function ReportGenerator() {
                 >
                   <i className="bi bi-x-lg" />
                 </button>
+
               </div>
             </div>
 
@@ -1408,9 +1460,11 @@ export default function ReportGenerator() {
                 </div>
               )}
             </div>
+
           </div>
         </div>
       )}
+
     </div>
   );
 }

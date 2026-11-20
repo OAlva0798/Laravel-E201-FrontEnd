@@ -97,7 +97,7 @@ export const isSettingsEmpty = (settings) => {
 };
 
 // ==========================================================
-// FILE URL
+// FILE & PATH HELPERS
 // ==========================================================
 
 export const getFileUrl = (value) => {
@@ -119,7 +119,30 @@ export const getFileUrl = (value) => {
   // Relative server path
   // --------------------------------------------------------
 
-  return `${SERVER_BASE_URL}/${path.replace(/^\/+/, "")}`;
+  const cleanBase = String(SERVER_BASE_URL ?? "").replace(/\/+$/, "");
+  const cleanPath = path.replace(/^\/+/, "");
+
+  return cleanBase ? `${cleanBase}/${cleanPath}` : cleanPath;
+};
+
+/**
+ * Strips SERVER_BASE_URL if the database returns a full absolute URL,
+ * leaving raw fields as relative paths.
+ */
+export const getRelativePath = (value) => {
+  const path = String(value ?? "").trim();
+
+  if (!path) {
+    return "";
+  }
+
+  const cleanBase = String(SERVER_BASE_URL ?? "").replace(/\/+$/, "");
+
+  if (cleanBase && path.startsWith(cleanBase)) {
+    return path.slice(cleanBase.length).replace(/^\/+/, "");
+  }
+
+  return path;
 };
 
 // ==========================================================
@@ -201,19 +224,19 @@ export const useAppSettings = () => {
   // SITE MEDIA
   // ========================================================
 
-  const rawLogo = getSetting(systemSetting, "site_logo");
-  const rawCorsealImg = getSetting(systemSetting, "site_corseal_img");
-  const rawLoadingImg = getSetting(systemSetting, "site_loading_img");
+  const rawLogo = getRelativePath(getSetting(systemSetting, "site_logo"));
+  const rawCorsealImg = getRelativePath(getSetting(systemSetting, "site_corseal_img"));
+  const rawLoadingImg = getRelativePath(getSetting(systemSetting, "site_loading_img"));
 
   const logoUrl = useMemo(() => getFileUrl(rawLogo), [rawLogo]);
   const corsealImgUrl = useMemo(() => getFileUrl(rawCorsealImg), [rawCorsealImg]);
-  const loadingImgUrl = useMemo(() => getFileUrl(rawLoadingImg),[rawLoadingImg]);
+  const loadingImgUrl = useMemo(() => getFileUrl(rawLoadingImg), [rawLoadingImg]);
 
   // ========================================================
   // LOGIN BACKGROUND
   // ========================================================
 
-  const rawBackground = getSetting(systemSetting, "login_background");
+  const rawBackground = getRelativePath(getSetting(systemSetting, "login_background"));
 
   const backgroundUrl = useMemo(
     () => getFileUrl(rawBackground),

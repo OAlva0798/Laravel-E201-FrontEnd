@@ -4,6 +4,7 @@ import Modal from "../../assets/function/Modal";
 import { API_BASE_URL } from "../../assets/js/appConfig";
 import E201TabContent from "./E201TabContent";
 import EmployeeMovementHistory from "./EmployeeMovementHistory";
+import COETabContent from "./EmployeeCOEHistory";
 import {
   apiRequest,
   extractList,
@@ -69,9 +70,10 @@ const TABS_CONFIG = [
         description: "Emergency contact details",
         icon: "bi-telephone",
         fields: [
+          f("Relationship", "ee_ecrelationship", "sm:col-span-4", { copy: true }),
           f("Name", "ee_ecname", "sm:col-span-4", { copy: true }),
-          f("Number", "ee_eccontact", "sm:col-span-3", { type: "tel", copy: true }),
-          f("Address", "ee_ecaddress", "sm:col-span-5", { copy: true }),
+          f("Number", "ee_eccontact", "sm:col-span-4", { type: "tel", copy: true }),
+          f("Address", "ee_ecaddress", "sm:col-span-12", { copy: true }),
         ],
       },
     ],
@@ -110,8 +112,9 @@ const TABS_CONFIG = [
       },
     ],
   },
-  { id: "movement-history", label: "Employment History", shortLabel: "History", icon: "bi-clock-history", kind: "history" },
   { id: "e201", label: "E-201 Records", shortLabel: "E-201", icon: "bi-folder2-open", kind: "e201" },
+  { id: "movement-history", label: "Employment History", shortLabel: "History", icon: "bi-clock-history", kind: "history" },
+  { id: "coe", label: "COE Records", shortLabel: "COE", icon: "bi-folder2-open", kind: "coe" },
 ];
 
 /* =========================================================
@@ -292,8 +295,8 @@ function InfoField({ field, record, resolveOrg }) {
   }
 
   return (
-    <div className="min-w-0 px-2 pt-2.5">
-      <span className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">
+    <div className="min-w-0 px-0 pt-1.5">
+      <span className="text-[12px] font-semibold uppercase tracking-wide text-dark-500">
         {field.label}
       </span>
 
@@ -425,23 +428,26 @@ function ProfileLayout({ record, fullName, profileUrl, resolveOrg, organizationL
               })}
             </div>
           </div>
-
           <div
             key={tab.id}
             id={`employee-panel-${tab.id}`}
             role="tabpanel"
             aria-labelledby={`employee-tab-${tab.id}`}
             tabIndex={0}
-            className="space-y-3 pb-3 focus:outline-none lg:min-h-0 lg:flex-1 lg:space-y-4 lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain lg:pr-2"
+            className="space-y-3 pb-4 focus:outline-none lg:min-h-0 lg:flex-1 lg:space-y-4 lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain lg:pr-2"
           >
-            {tab.kind === "history" ? (
-              <EmployeeMovementHistory employeeIdNumber={record.ee_id_number} onChanged={onRecordChanged} />
-            ) : tab.kind === "e201" ? (
+            {tab.kind === "e201" ? (
               <E201TabContent employee={record} />
+            ) : tab.kind === "history" ? (
+              <EmployeeMovementHistory employeeIdNumber={record.ee_id_number} onChanged={onRecordChanged} />
+            ) : tab.kind === "coe" ? (
+              <COETabContent employee={record} onChanged={onRecordChanged} />
             ) : (
-              tab.sections.map((section) => (
-                <CardSection key={section.title} section={section} record={record} resolveOrg={resolveOrg} />
-              ))
+              <div className="space-y-3 pb-8">
+                {tab.sections.map((section) => (
+                  <CardSection key={section.title} section={section} record={record} resolveOrg={resolveOrg} />
+                ))}
+              </div>
             )}
           </div>
         </main>
