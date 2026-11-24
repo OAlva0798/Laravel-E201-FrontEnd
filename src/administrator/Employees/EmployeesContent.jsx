@@ -643,7 +643,7 @@ export default function EmployeesContent() {
                     setActiveGroup(g.value);
                     setDefaultTab(firstTabOfGroup(g.value).value);
                   }}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1 text-xs font-semibold transition ${selected ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-cyan-50 px-2 py-1 text-xs font-semibold text-cyan-700 transition hover:bg-cyan-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:cursor-not-allowed disabled:opacity-50 ${selected ? "bg-cyan-600 text-white" : ""}`}
                 >
                   <i className={g.icon} /> {g.label}
                 </button>

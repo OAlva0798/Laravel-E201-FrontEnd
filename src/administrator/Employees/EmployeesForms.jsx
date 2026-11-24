@@ -124,7 +124,7 @@ const SECTIONS = [
       input("ee_id_number", "Employee ID", 3, { required: true, placeholder: "Enter ID number" }),
       input("ee_id_biometrics", "Biometrics ID", 3, { placeholder: "Optional" }),
       input("ee_sss", "SSS Number", 3, { required: true, placeholder: "Enter SSS number" }),
-      input("ee_tinid", "TIN Number", 3, { required: true, placeholder: "Enter TIN number" }),
+      input("ee_tinid", "TIN Number", 3, { required: false, placeholder: "Enter TIN number" }),
     ],
   },
   {
@@ -712,7 +712,7 @@ export default function EmployeesForm({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={`${currentItem ? "Edit" : "Add"} ${title}`}
+      title={`${currentItem ? "Update" : "Create"} ${title} details`}
       modalSize={modalSize}
     >
       <div className="flex h-[80vh] min-h-0 flex-col overflow-hidden">
@@ -837,8 +837,8 @@ export default function EmployeesForm({
                         onClick={() => setActiveTab(tab.id)}
                         className={`relative flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-input-ring ${
                           selected
-                            ? "bg-slate-900 text-white shadow-sm"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            ? "bg-cyan-500 text-white shadow-sm"
+                            : "text-cyan-600 hover:bg-cyan-100 hover:text-slate-900"
                         }`}
                       >
                         <i className={`bi ${tab.icon} text-base`} />
@@ -900,7 +900,7 @@ export default function EmployeesForm({
               type="button"
               onClick={handleClose}
               disabled={isLoading}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-rose-500 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <i className="bi bi-x-circle" />
               Cancel
@@ -910,7 +910,7 @@ export default function EmployeesForm({
               type="submit"
               form="onSubmit-form"
               disabled={isLoading}
-              className="inline-flex min-w-[96px] cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-input-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-emerald-500 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white hover:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <>

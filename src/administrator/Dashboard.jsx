@@ -265,7 +265,7 @@ function ControlBar({
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            🎂 Birthdays ({birthdaysCount})
+          Birthdays ({birthdaysCount})
           </button>
 
           <button
@@ -279,7 +279,7 @@ function ControlBar({
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            🏆 Work Anniversaries ({anniversariesCount})
+          Work Anniversaries ({anniversariesCount})
           </button>
         </div>
 
@@ -487,7 +487,7 @@ function EmployeeListItem({ item, activeTab, deptName, onSelect }) {
           </div>
 
           <p className="truncate text-xs font-medium text-slate-500">
-            ID: {emp.ee_id || "—"}
+            ID: {emp.ee_id_number  || "—"}
             {deptName ? ` · ${deptName}` : ""}
           </p>
 
@@ -531,7 +531,7 @@ function EmployeeCardGrid({ list, activeTab, getDeptName, onSelect }) {
 
         return (
           <div
-            key={emp.ee_id}
+            key={emp.ee_id_number }
             onClick={() => onSelect(item)}
             role="button"
             tabIndex={0}
@@ -566,7 +566,7 @@ function EmployeeCardGrid({ list, activeTab, getDeptName, onSelect }) {
                 </p>
 
                 {/* <p className="w-full truncate text-xs text-slate-500">
-                  ID: {emp.ee_id || "—"}
+                  ID: {emp.ee_id_number  || "—"}
                 </p> */}
 
                 <p
@@ -661,7 +661,7 @@ function EmployeeDetailModal({ item, activeTab, deptName, onClose }) {
 
           <h3 className="text-lg font-bold">{getFullName(emp)}</h3>
           <p className="text-xs text-slate-300">
-            Employee ID: {emp.ee_id || "—"}
+            Employee ID: {emp.ee_id_number  || "—"}
           </p>
           <p className="text-xs text-slate-300">
             {deptName || "No Department Assigned"}
@@ -815,7 +815,7 @@ function UltraCompactDashboard() {
 
       const searchableValues = [
         getFullName(emp),
-        emp.ee_id,
+        emp.ee_id_number ,
         getEmployeeStatus(emp),
         emp.ee_email,
         emp.email,
@@ -876,7 +876,7 @@ function UltraCompactDashboard() {
     ];
 
     const rows = filteredList.map(({ emp, date, days, years }) => [
-      emp.ee_id,
+      emp.ee_id_number ,
       getFullName(emp),
       getDeptName(emp),
       getEmployeeStatus(emp),
@@ -1014,7 +1014,7 @@ function UltraCompactDashboard() {
             <div className="space-y-2">
               {paginatedList.map((item) => (
                 <EmployeeListItem
-                  key={item.emp.ee_id}
+                  key={item.emp.ee_id_number }
                   item={item}
                   activeTab={prefs.tab}
                   deptName={getDeptName(item.emp)}
@@ -1047,7 +1047,7 @@ function UltraCompactDashboard() {
 
 export default function DashboardLayout() {
   const [user] = useState(() => getStoredUser());
-  const canView = hasRoleAccess(user, "employees");
+  const canView = hasRoleAccess(user, "dashboard");
 
   if (!canView) {
     return (

@@ -412,10 +412,10 @@ function ProfileLayout({ record, fullName, profileUrl, resolveOrg, organizationL
                     aria-selected={selected}
                     aria-controls={`employee-panel-${t.id}`}
                     onClick={() => setActiveTab(t.id)}
-                    className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-[11px] font-semibold transition focus:outline-none focus:ring-2 focus:ring-input-ring sm:gap-2 sm:text-xs ${
+                    className={`flex min-w-0 flex-1 items-center cursor-pointer justify-center gap-1.5 rounded-xl px-2 py-2 text-[11px] font-semibold transition focus:outline-none focus:ring-2 focus:ring-input-ring sm:gap-2 sm:text-xs ${
                       selected
-                        ? "bg-slate-900 text-white shadow-sm"
-                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                        ? "bg-cyan-500 text-white shadow-sm"
+                        : "text-cyan-600 hover:bg-cyan-100 hover:text-slate-900"
                     }`}
                   >
                     <i className={`bi ${t.icon} text-sm sm:text-base`} />

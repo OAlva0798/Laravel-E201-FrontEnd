@@ -20,6 +20,42 @@ export const getTabClass = (tab, isSelected) =>
       TAB_ACTIVE_STYLES.emerald
     : TAB_INACTIVE_STYLE;
 
+export function StatusBadge({
+  status = "Active",
+  activeValue = "Active",
+  onClick,
+  label,
+  disabled = false,
+}) {
+  const displayText = status || activeValue;
+  const isActive = displayText === activeValue;
+  const isInteractive = typeof onClick === "function" && !disabled;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!isInteractive}
+      aria-pressed={isInteractive ? isActive : undefined}
+      aria-label={label || `Status: ${displayText}${isInteractive ? ". Click to toggle" : ""}`}
+      title={isInteractive ? "Click to change status" : displayText}
+      className={`group inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${
+        isActive
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700 focus-visible:ring-emerald-500"
+          : "border-rose-200 bg-rose-50 text-rose-700 focus-visible:ring-rose-500"
+      } ${
+        isInteractive
+          ? isActive
+            ? "cursor-pointer hover:scale-105 hover:border-emerald-600 hover:bg-emerald-600 hover:text-white active:scale-95"
+            : "cursor-pointer hover:scale-105 hover:border-rose-600 hover:bg-rose-600 hover:text-white active:scale-95"
+          : "cursor-default opacity-90"
+      }`}
+    >
+      <span>{displayText}</span>
+    </button>
+  );
+}
+
 /* ---------- Header (tabs + Add button) ---------- */
 export function CrudHeader({
   activeTab,
@@ -42,7 +78,7 @@ export function CrudHeader({
               type="button"
               onClick={() => setActiveTab(tab.value)}
               aria-pressed={isSelected}
-              className={`inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold transition ${getTabClass(
+              className={`inline-flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold transition ${getTabClass(
                 tab,
                 isSelected
               )}`}
@@ -61,7 +97,7 @@ export function CrudHeader({
         <button
           type="button"
           onClick={() => handleOpenModal()}
-          className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 shadow-sm transition hover:bg-blue-100 active:scale-[0.98] lg:self-auto"
+          className="inline-flex cursor-pointer shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 shadow-sm transition hover:border-blue-600 hover:bg-blue-600 hover:text-white active:scale-[0.98] lg:self-auto"
         >
           <i className="bi bi-plus-lg text-sm" />
           <span>Add {title}</span>
@@ -71,82 +107,55 @@ export function CrudHeader({
   );
 }
 
-/* ---------- Status badge ---------- */
-export function StatusBadge({
-  status = "Active",
-  activeValue = "Active",
-  onClick,
-  label,
-}) {
-  const isActive = status === activeValue;
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title="Click to change status"
-      aria-label={label || "Change status"}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold transition hover:scale-105 active:scale-95 ${
-        isActive
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-          : "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
-      }`}
-    >
-      <span
-        className={`h-2 w-2 rounded-full ${
-          isActive ? "bg-emerald-500" : "bg-rose-500"
-        }`}
-      />
-      {status || activeValue}
-    </button>
-  );
-}
-
+/* ---------- Row Action Buttons ---------- */
 export function ActionButtons({
   onView,
   onEdit,
   onDelete,
+  itemName = "item",
+  showLabels = false,
 }) {
+  const actions = [
+    {
+      onClick: onView,
+      label: "View",
+      title: `View ${itemName}`,
+      icon: "bi-eye",
+      style: "bg-cyan-50 text-cyan-700 hover:bg-cyan-600 focus:ring-cyan-500",
+    },
+    {
+      onClick: onEdit,
+      label: "Edit",
+      title: `Edit ${itemName}`,
+      icon: "bi-pencil-square",
+      style: "bg-blue-50 text-blue-700 hover:bg-blue-600 focus:ring-blue-500",
+    },
+    {
+      onClick: onDelete,
+      label: "Delete",
+      title: `Delete ${itemName}`,
+      icon: "bi-trash",
+      style: "bg-rose-50 text-rose-700 hover:bg-rose-600 focus:ring-rose-500",
+    },
+  ].filter((action) => Boolean(action.onClick));
+
+  if (actions.length === 0) return null;
+
   return (
-    <div className="flex items-center justify-center gap-2">
-      {onView && (
+    <div className="flex items-center justify-center gap-0.5">
+      {actions.map(({ onClick, label, title, icon, style }) => (
         <button
+          key={label}
           type="button"
-          onClick={onView}
-          title="View employee"
-          aria-label="View employee"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500 bg-transparent text-blue-600 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-input-ring"
+          onClick={onClick}
+          title={title}
+          aria-label={title}
+          className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-semibold transition hover:text-white focus:outline-none focus:ring-2 ${style}`}
         >
-          <i className="bi bi-eye" aria-hidden="true" />
+          <i className={`bi ${icon}`} aria-hidden="true" />
+          {showLabels && <span>{label}</span>}
         </button>
-      )}
-
-      {onEdit && (
-        <button
-          type="button"
-          onClick={onEdit}
-          title="Edit employee"
-          aria-label="Edit employee"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500 bg-transparent text-emerald-600 transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-input-ring"
-        >
-          <i
-            className="bi bi-pencil-square"
-            aria-hidden="true"
-          />
-        </button>
-      )}
-
-      {onDelete && (
-        <button
-          type="button"
-          onClick={onDelete}
-          title="Delete employee"
-          aria-label="Delete employee"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500 bg-transparent text-rose-600 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-200"
-        >
-          <i className="bi bi-trash" aria-hidden="true" />
-        </button>
-      )}
+      ))}
     </div>
   );
 }

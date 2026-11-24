@@ -11,8 +11,7 @@ export const SITE = {
 };
 
 // API address comes from .env (VITE_API_BASE_URL). See .env.example.
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 export const SERVER_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, "");
 
 // Optional separate backup service (previously hardcoded localhost:5000).
@@ -27,7 +26,20 @@ export const ACCOUNT_TYPES = ["Super Admin", "Admin", "User"];
 // IMPORTANT: this only hides UI. The backend must enforce the same rules.
 export const ROLE_TABS = {
   "Super Admin": ["*"],
-  Admin: ["dashboard", "center", "department", "position", "userdetails",
-          "profile", "system-settings", "backup"],
-  User: ["dashboard", "profile"],
+
+  Admin: [
+    "dashboard",
+    "report",
+    "employees",
+    "company",
+    "center",
+    "department_position",
+    "profile",
+    "backup"
+  ],
+
+  User: [
+    "dashboard",
+    "profile"
+  ],
 };
